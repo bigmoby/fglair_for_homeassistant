@@ -1,4 +1,5 @@
 {
   "name": "FGLiar Home Assistant Integration",
-  "iot_class": "Cloud Polling"
+  "iot_class": "Cloud Polling",
+  "render_readme": true
 }

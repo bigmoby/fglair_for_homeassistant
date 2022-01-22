@@ -7,6 +7,8 @@
 ![Maintenance][maintenance-shield]
 [![GitHub Activity][commits-shield]][commits]
 
+[![Donate](https://img.shields.io/badge/donate-BuyMeCoffee-yellow.svg)](https://www.buymeacoffee.com/bigmoby)
+
 This is a platform to support Fujitsu General Airconditioners under Climate component of Home Assistant. The Python supporting library for accessing the FGLair API is located at: https://github.com/bigmoby/pyfujitseu/
 
 ### Sample UI:
