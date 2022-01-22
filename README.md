@@ -1,4 +1,4 @@
-# FGLAir&trade; integration for homeassistant
+# FGLair&trade; integration for homeassistant
 
 [![GitHub Release][releases-shield]][releases]
 ![Project Stage][project-stage-shield]
