@@ -1,6 +1,6 @@
 {
   "name": "FGLiar Home Assistant Integration",
   "iot_class": "Cloud Polling",
-  "render_readme": true,
+  "render_readme": false,
   "homeassistant": "2021.12.1"
 }
