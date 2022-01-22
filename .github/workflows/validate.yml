@@ -12,7 +12,8 @@ jobs:
     steps:
         - uses: "actions/checkout@v2"
         - uses: "home-assistant/actions/hassfest@master"
-        - name: HACS validation
+        - uses: "actions/checkout@v2"
+        - name: HACS Action
           uses: "hacs/action@main"
           with:
             category: "integration"
