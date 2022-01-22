@@ -1,4 +1,4 @@
-# FGLiar integration for homeassistant
+# FGLAir integration for homeassistant
 
 [![GitHub Release][releases-shield]][releases]
 ![Project Stage][project-stage-shield]
