@@ -19,14 +19,14 @@ This is a platform to support Fujitsu General Airconditioners under Climate comp
 ## Installation
 ### Manual
 
-1. Create this directory path `custom_components/fgliar_heatpump_controller/` if it does not already exist.
+1. Create this directory path `custom_components/fglair_heatpump_controller/` if it does not already exist.
 
 2. Download the `climate.py` `manifest.json' and '__init__.py` from the repo and place it in the  directory mentioned in previous step. 
 
 So the end result would look like: 
-`/custom_components/fgliar_heatpump_controller/climate.py`
-`/custom_components/fgliar_heatpump_controller/manifest.json`
-`/custom_components/fgliar_heatpump_controller/__init__.py`
+`/custom_components/fglair_heatpump_controller/climate.py`
+`/custom_components/fglair_heatpump_controller/manifest.json`
+`/custom_components/fglair_heatpump_controller/__init__.py`
 
 ### HACS
 1. Add this repository to HACS:
@@ -34,7 +34,7 @@ So the end result would look like:
 https://github.com/bigmoby/fglair_for_homeassistant
 ```
 
-2. Search for the `FGLiar integration for homeassistant` integration and choose install. 
+2. Search for the `FGLair integration for homeassistant` integration and choose install. 
 
 3. Reboot Home Assistant.
 
@@ -43,7 +43,7 @@ https://github.com/bigmoby/fglair_for_homeassistant
 Add the below lines to your `configuration.yaml` file and replace it with your FGLair app username/password:
 ```
 climate:
-   - platform: fgliar_heatpump_controller
+   - platform: fglair_heatpump_controller
      username: <your FGLair username>
      password: <your FGLair password> 
      region: [eu, cn, us] (optional, default: us)
@@ -53,7 +53,7 @@ climate:
 Full Example:
 ```
 climate:
-  - platform: fgliar_heatpump_controller
+  - platform: fglair_heatpump_controller
     username: !secret FGLAIR_USER
     password: !secret FGLAIR_PASS
     region: 'eu'

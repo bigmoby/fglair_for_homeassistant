@@ -1,5 +1,5 @@
 {
-  "name": "FGLiar Home Assistant Integration",
+  "name": "FGLair Home Assistant Integration",
   "iot_class": "Cloud Polling",
   "render_readme": false,
   "homeassistant": "2021.12.1"
