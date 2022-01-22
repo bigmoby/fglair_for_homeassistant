@@ -1,4 +1,4 @@
-# FGLAir integration for homeassistant
+# FGLAir&trade; integration for homeassistant
 
 [![GitHub Release][releases-shield]][releases]
 ![Project Stage][project-stage-shield]
@@ -9,7 +9,9 @@
 
 [![Donate](https://img.shields.io/badge/donate-BuyMeCoffee-yellow.svg)](https://www.buymeacoffee.com/bigmoby)
 
-This is a platform to support Fujitsu General Airconditioners under Climate component of Home Assistant. The Python supporting library for accessing the FGLair API is located at: https://github.com/bigmoby/pyfujitseu/
+![FGLAIR_LOGO](FGLair_logo.png)
+
+This is a platform to support Fujitsu General Airconditioners under Climate component of Home Assistant. The Python supporting library for accessing the FGLair&trade; API is located at: https://github.com/bigmoby/pyfujitseu/
 
 ## Sample UI:
 
@@ -68,6 +70,9 @@ climate:
 - [ ] The “powerful” functionality is implemented through aux_heat button in UI
 - [ ] There are some other functionalities in the A/C which currently is not implemented.
 - [ ] Possibility to add external temperature sensor
+
+##
+** "FGLair" is a trademark of FUJITSU GENERAL LIMITED.
 
 [releases-shield]: https://img.shields.io/github/release/bigmoby/fglair_for_homeassistant.svg
 [releases]: https://github.com/bigmoby/fglair_for_homeassistant/releases
