@@ -1,1 +1,1 @@
-"""FGLiar heat pump controller integration."""
+"""FGLair heat pump controller integration."""
