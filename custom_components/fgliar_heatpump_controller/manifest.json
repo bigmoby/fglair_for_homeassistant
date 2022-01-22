@@ -3,6 +3,7 @@
   "name": "FGLiar heat pump controller integration",
   "version": "0.0.1",
   "documentation": "https://github.com/bigmoby/fglair_for_homeassistant/blob/main/README.md",
+  "issue_tracker": "https://github.com/bigmoby/fglair_for_homeassistant/issues",
   "dependencies": [],
   "codeowners": ["@bigmoby" ,"@Mmodarre", "@xerxes87"],
   "requirements": ["pyfujitseu==0.9.3.2"],
