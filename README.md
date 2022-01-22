@@ -11,23 +11,36 @@
 
 This is a platform to support Fujitsu General Airconditioners under Climate component of Home Assistant. The Python supporting library for accessing the FGLair API is located at: https://github.com/bigmoby/pyfujitseu/
 
-### Sample UI:
+## Sample UI:
 
 ![UI_SCREENSHOT1](Capture.PNG)
 ![UI_SCREENSHOT2](Capture2.PNG)
 
-### Usage:
-1. create this directory path `/config/custom_components/fgliar_heatpump_controller/` if it does not already exist.
+## Installation
+### Manual
 
+1. Create this directory path `custom_components/fgliar_heatpump_controller/` if it does not already exist.
 
 2. Download the `climate.py` `manifest.json' and '__init__.py` from the repo and place it in the  directory mentioned in previous step. 
 
 So the end result would look like: 
-`/config/custom_components/fgliar_heatpump_controller/climate.py`
-`/config/custom_components/fgliar_heatpump_controller/manifest.json`
-`/config/custom_components/fgliar_heatpump_controller/__init__.py`
+`/custom_components/fgliar_heatpump_controller/climate.py`
+`/custom_components/fgliar_heatpump_controller/manifest.json`
+`/custom_components/fgliar_heatpump_controller/__init__.py`
 
-3. add the below lines to your `configuration.yaml` file and replace it with your FGLair app username/password:
+### HACS
+1. Add this repository to HACS:
+```
+https://github.com/bigmoby/fglair_for_homeassistant
+```
+
+2. Search for the `FGLiar integration for homeassistant` integration and choose install. 
+
+3. Reboot Home Assistant.
+
+### Usage:
+
+Add the below lines to your `configuration.yaml` file and replace it with your FGLair app username/password:
 ```
 climate:
    - platform: fgliar_heatpump_controller
@@ -49,7 +62,7 @@ climate:
 
 4. Restart Home Assistant in order for the new component to show and all of your A/Cs in your account should appear in HASS.
 
-### Known issues and missing features:
+## Known issues and missing features:
 
 
 - [X] Logging needs to be implemented
