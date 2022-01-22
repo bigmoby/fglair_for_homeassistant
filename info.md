@@ -11,7 +11,7 @@
 
 This is a platform to support Fujitsu General Airconditioners under Climate component of Home Assistant.
 
-### See [README](https://github.com/bigmoby/fglair_for_homeassistant/blob/master/README.md) for usage instructions
+### See [README](https://github.com/bigmoby/fglair_for_homeassistant/blob/main/README.md) for usage instructions
 
 [releases-shield]: https://img.shields.io/github/release/bigmoby/fglair_for_homeassistant.svg
 [releases]: https://github.com/bigmoby/fglair_for_homeassistant/releases
