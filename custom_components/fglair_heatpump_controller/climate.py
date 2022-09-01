@@ -10,19 +10,11 @@ from pyfujitseu.splitAC import splitAC
 
 from homeassistant.components.climate import ClimateEntity, PLATFORM_SCHEMA
 from homeassistant.components.climate.const import (
-    HVAC_MODE_OFF,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_COOL,
-    HVAC_MODE_AUTO,
-    HVAC_MODE_DRY,
-    HVAC_MODE_FAN_ONLY,
-    SUPPORT_FAN_MODE,
-    SUPPORT_SWING_MODE,
-    SUPPORT_TARGET_TEMPERATURE,
-    SUPPORT_AUX_HEAT,
+    HVAC_MODE_OFF, HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_AUTO, HVAC_MODE_DRY, HVAC_MODE_FAN_ONLY,
+    SUPPORT_FAN_MODE, SUPPORT_SWING_MODE, SUPPORT_TARGET_TEMPERATURE, SUPPORT_AUX_HEAT,
     FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_DIFFUSE,
-    CURRENT_HVAC_HEAT,
-    CURRENT_HVAC_IDLE)
+    SWING_OFF, SWING_ON, SWING_VERTICAL, SWING_HORIZONTAL, SWING_BOTH,
+    CURRENT_HVAC_HEAT, CURRENT_HVAC_IDLE)
 from homeassistant.const import (
     ATTR_TEMPERATURE, CONF_USERNAME, CONF_PASSWORD, TEMP_CELSIUS)
 import homeassistant.helpers.config_validation as cv
@@ -30,6 +22,7 @@ import homeassistant.helpers.config_validation as cv
 __version__ = '0.1.0'
 
 _LOGGER = logging.getLogger(__name__)
+# _LOGGER.setLevel(logging.DEBUG)
 
 # REQUIREMENTS = ['pyfujitseu==0.9.3.2']
 
@@ -47,15 +40,12 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
 
 })
 
-HA_FAN_TO_FUJITSU = {
+DICT_FAN_MODE = {
     FAN_AUTO: "Auto",
     FAN_LOW: "Low",
     FAN_MEDIUM: "Medium",
     FAN_HIGH: "High",
-    FAN_DIFFUSE: "Quiet"
-}
-
-FUJITSU_FAN_TO_HA = {
+    FAN_DIFFUSE: "Quiet",
     "Auto": FAN_AUTO,
     "Low": FAN_LOW,
     "Medium": FAN_MEDIUM,
@@ -63,11 +53,9 @@ FUJITSU_FAN_TO_HA = {
     "Quiet": FAN_DIFFUSE
 }
 
-
-def setup_platform(hass, config, add_entities, discovery_info=None):
+def setup_platform(hass, config, add_entities, discovery_info = None):
     """Setup the E-Thermostaat Platform."""
 
-    _LOGGER.debug("FujitsuClimate setup_platform called")
     _LOGGER.debug("FujitsuClimate setup_platform called")
 
     username = config.get(CONF_USERNAME)
@@ -108,13 +96,13 @@ class FujitsuClimate(ClimateEntity):
         self._hvac_mode = self.hvac_mode
         self._swing_mode = self.swing_mode
 
-        self._fan_modes = [FUJITSU_FAN_TO_HA['Quiet'], FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_AUTO]
-        self._hvac_modes = [HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_AUTO, HVAC_MODE_DRY, HVAC_MODE_FAN_ONLY,
-                            HVAC_MODE_OFF]
-        self._swing_modes = ['Horizontal', 'Down', 'Unknown', 'Swing']
+        self._fan_modes = [FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_DIFFUSE]
+        self._hvac_modes = [HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_AUTO, HVAC_MODE_DRY, HVAC_MODE_FAN_ONLY, HVAC_MODE_OFF]
+        self._swing_modes = [SWING_OFF, SWING_ON, SWING_VERTICAL, SWING_HORIZONTAL]
         self._on = self.is_on
 
         _LOGGER.debug("FujitsuClimate init fine.")
+        _LOGGER.debug("FujitsuClimate name set: %s", self._fujitsu_device._properties )
 
     @property
     def name(self):
@@ -152,6 +140,7 @@ class FujitsuClimate(ClimateEntity):
     @property
     def hvac_mode(self):
         """Return current operation ie. heat, cool, idle."""
+        _LOGGER.debug(self._name)
         _LOGGER.debug("FujitsuClimate hvac_mode: %s", self._fujitsu_device.operation_mode['value'])
         return self._fujitsu_device.operation_mode_desc
 
@@ -162,6 +151,7 @@ class FujitsuClimate(ClimateEntity):
 
     def set_hvac_mode(self, hvac_mode):
         """Set HVAC mode."""
+        _LOGGER.debug(self._name)
         _LOGGER.debug("FujitsuClimate set_hvac_mode called. self._hvac_mode: %s ; hvac_mode: %s", self._hvac_mode,
                       hvac_mode)
         if (hvac_mode == HVAC_MODE_OFF):
@@ -173,18 +163,23 @@ class FujitsuClimate(ClimateEntity):
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
+        _LOGGER.debug(self._name)
         _LOGGER.debug("FujitsuClimate set_temperature: %s ; 2: %s", kwargs.get(ATTR_TEMPERATURE),
                       kwargs.get(ATTR_TEMPERATURE))
         self._fujitsu_device.changeTemperature(kwargs.get(ATTR_TEMPERATURE))
 
     def update(self):
         """Retrieve latest state."""
+        _LOGGER.debug(self._name)
+        _LOGGER.debug("Update FujitsuClimate", self._fujitsu_device.refresh_properties())
         self._fujitsu_device.refresh_properties()
 
     @property
     def fan_mode(self):
         """Return the fan setting."""
-        return FUJITSU_FAN_TO_HA[self._fujitsu_device.get_fan_speed_desc()]
+        _LOGGER.debug(self._name)
+        _LOGGER.debug("FujitsuClimate fan_mode: %s", DICT_FAN_MODE[self._fujitsu_device.get_fan_speed_desc()])
+        return DICT_FAN_MODE[self._fujitsu_device.get_fan_speed_desc()]
 
     @property
     def fan_modes(self):
@@ -193,12 +188,26 @@ class FujitsuClimate(ClimateEntity):
 
     def set_fan_mode(self, fan_mode):
         """Set fan mode."""
-        self._fujitsu_device.changeFanSpeed(HA_FAN_TO_FUJITSU[fan_mode])
+        _LOGGER.debug(self._name)
+        _LOGGER.debug("FujitsuClimate fan modes: %s", self._fujitsu_device.changeFanSpeed(DICT_FAN_MODE[fan_mode]))
+        self._fujitsu_device.changeFanSpeed(DICT_FAN_MODE[fan_mode])
 
     @property
     def swing_mode(self):
-        """Return the fan setting."""
-        return self._fujitsu_device.get_swing_mode_desc()
+        """Return the swing setting."""
+        _LOGGER.debug(self._name)
+        _LOGGER.debug("FujitsuClimate swing vertical settings: %s", self._fujitsu_device.af_vertical_swing['value'])
+        _LOGGER.debug(self._name)
+        _LOGGER.debug("FujitsuClimate swing horizontal settings: %s", self._fujitsu_device.af_horizontal_swing['value'])
+
+        if self._fujitsu_device.af_vertical_swing['value'] == 1 and self._fujitsu_device.af_horizontal_swing['value'] == 1:
+            return 'on'
+        elif self._fujitsu_device.af_vertical_swing['value'] == 1 and self._fujitsu_device.af_horizontal_swing['value'] == 0:
+            return 'vertical'
+        elif self._fujitsu_device.af_vertical_swing['value'] == 0 and self._fujitsu_device.af_horizontal_swing['value'] == 1:
+            return 'horizontal'
+        else:
+            return 'off'
 
     @property
     def swing_modes(self):
@@ -206,9 +215,34 @@ class FujitsuClimate(ClimateEntity):
         return self._swing_modes
 
     def set_swing_mode(self, swing_mode):
-        """Set new target temperature."""
-        self._fujitsu_device.changeSwingMode(swing_mode)
-
+        """Set new target swing."""
+        _LOGGER.debug(self._name)
+        _LOGGER.debug("FujitsuClimate swing choice: %s", swing_mode.upper())
+        if swing_mode.upper() == 'ON':
+            self._fujitsu_device.af_vertical_swing = 1
+            self._fujitsu_device.af_horizontal_swing = 1
+            _LOGGER.debug(self._name)
+            _LOGGER.debug("FujitsuClimate swing choice valide: ON")
+        if swing_mode.upper() == 'OFF':
+            self._fujitsu_device.af_vertical_swing = 0
+            self._fujitsu_device.af_horizontal_swing = 0
+            _LOGGER.debug(self._name)
+            _LOGGER.debug("FujitsuClimate swing choice valide: OFF")
+        if swing_mode.upper() == 'VERTICAL':
+            self._fujitsu_device.af_vertical_swing = 1
+            self._fujitsu_device.af_horizontal_swing = 0
+            _LOGGER.debug(self._name)
+            _LOGGER.debug("FujitsuClimate swing choice valide: VERTICAL")
+        if swing_mode.upper() == 'HORIZONTAL':
+            self._fujitsu_device.af_vertical_swing = 0
+            self._fujitsu_device.af_horizontal_swing = 1
+            _LOGGER.debug(self._name)
+            _LOGGER.debug("FujitsuClimate swing choice valide: HORIZONTAL")
+        #if swing_mode.upper() == 'BOTH':
+        #    self._fujitsu_device.af_vertical_swing = 1
+        #    self._fujitsu_device.af_horizontal_swing = 1
+        #    _LOGGER.debug("FujitsuClimate swing choice valide: BOTH")
+        
     ############old stufffff
 
     @property
