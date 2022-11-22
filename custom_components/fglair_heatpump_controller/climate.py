@@ -11,9 +11,10 @@ from pyfujitseu.splitAC import splitAC
 from homeassistant.components.climate import ClimateEntity, PLATFORM_SCHEMA
 from homeassistant.components.climate.const import (
     HVAC_MODE_OFF, HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_AUTO, HVAC_MODE_DRY, HVAC_MODE_FAN_ONLY,
-    SUPPORT_FAN_MODE, SUPPORT_SWING_MODE, SUPPORT_TARGET_TEMPERATURE, SUPPORT_AUX_HEAT,
+    SUPPORT_FAN_MODE, SUPPORT_SWING_MODE, SUPPORT_TARGET_TEMPERATURE, SUPPORT_AUX_HEAT, SUPPORT_PRESET_MODE,
     FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_DIFFUSE,
     SWING_OFF, SWING_ON, SWING_VERTICAL, SWING_HORIZONTAL, SWING_BOTH,
+    PRESET_NONE, PRESET_ECO,
     CURRENT_HVAC_HEAT, CURRENT_HVAC_IDLE)
 from homeassistant.const import (
     ATTR_TEMPERATURE, CONF_USERNAME, CONF_PASSWORD, TEMP_CELSIUS)
@@ -30,7 +31,7 @@ _LOGGER = logging.getLogger(__name__)
 MIN_TEMP = 16
 MAX_TEMP = 30
 
-SUPPORT_FLAGS = SUPPORT_FAN_MODE | SUPPORT_SWING_MODE | SUPPORT_TARGET_TEMPERATURE
+SUPPORT_FLAGS = SUPPORT_FAN_MODE | SUPPORT_SWING_MODE | SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE 
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_USERNAME): cv.string,
@@ -99,6 +100,7 @@ class FujitsuClimate(ClimateEntity):
         self._fan_modes = [FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_DIFFUSE]
         self._hvac_modes = [HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_AUTO, HVAC_MODE_DRY, HVAC_MODE_FAN_ONLY, HVAC_MODE_OFF]
         self._swing_modes = [SWING_OFF, SWING_ON, SWING_VERTICAL, SWING_HORIZONTAL]
+        self._preset_modes = [PRESET_NONE, PRESET_ECO]
         self._on = self.is_on
 
         _LOGGER.debug("FujitsuClimate init fine.")
@@ -242,7 +244,30 @@ class FujitsuClimate(ClimateEntity):
         #    self._fujitsu_device.af_vertical_swing = 1
         #    self._fujitsu_device.af_horizontal_swing = 1
         #    _LOGGER.debug("FujitsuClimate swing choice valide: BOTH")
-        
+
+    @property
+    def preset_mode(self):
+        """Return the preset setting."""
+        _LOGGER.debug(self._name)
+        _LOGGER.debug("FujitsuClimate preset setting: %s", self._fujitsu_device.economy_mode['value'])
+        if self._fujitsu_device.economy_mode['value'] == 1:
+            return PRESET_ECO
+        return PRESET_NONE
+
+    @property
+    def preset_modes(self):
+        """List of available preset modes."""
+        return self._preset_modes
+
+    def set_preset_mode(self, preset_mode):
+        """Set preset mode."""
+        _LOGGER.debug(self._name)
+        _LOGGER.debug("FujitsuClimate preset choice: %s", preset_mode.upper())
+        if preset_mode == PRESET_NONE:
+            self._fujitsu_device.economy_mode = 0
+        elif preset_mode == PRESET_ECO:
+            self._fujitsu_device.economy_mode = 1
+
     ############old stufffff
 
     @property
