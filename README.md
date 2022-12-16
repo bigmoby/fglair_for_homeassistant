@@ -23,7 +23,7 @@ This is a platform to support Fujitsu General Airconditioners under Climate comp
 
 1. Create this directory path `custom_components/fglair_heatpump_controller/` if it does not already exist.
 
-2. Download the `climate.py` `manifest.json' and '__init__.py` from the repo and place it in the  directory mentioned in previous step. 
+2. Download the `climate.py` `manifest.json` and `__init__.py` from the repo and place it in the  directory mentioned in previous step. 
 
 So the end result would look like: 
 `/custom_components/fglair_heatpump_controller/climate.py`
