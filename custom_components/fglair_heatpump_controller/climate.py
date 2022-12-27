@@ -74,24 +74,26 @@ def setup_platform(hass, config, add_entities, discovery_info = None):
     _LOGGER.debug("FujitsuClimate fglairapi._authenticate ")
 
     devices = fglairapi.get_devices_dsn()
-    add_entities(FujitsuClimate(fglairapi, dsn) for dsn in devices)
+    add_entities(FujitsuClimate(fglairapi, dsn, region) for dsn in devices)
     _LOGGER.debug("FujitsuClimate setup_platform fine")
 
 
 class FujitsuClimate(ClimateEntity):
     """Representation of a E-Thermostaat device."""
 
-    def __init__(self, api, dsn):
+    def __init__(self, api, dsn, region):
         """Initialize the thermostat."""
         _LOGGER.debug("FujitsuClimate init called for dsn: %s", dsn)
         _LOGGER.debug("FujitsuClimate pyfujitseu.splitAC called")
         self._api = api
         self._dsn = dsn
+        self._region = region
         self._fujitsu_device = splitAC(self._dsn, self._api)
         _LOGGER.debug("FujitsuClimate _fujitsu_device setup.")
         self._name = self.name
         _LOGGER.debug("FujitsuClimate name set: %s", self._name)
         self._aux_heat = self.is_aux_heat_on
+        self._current_temperature = self.current_temperature
         self._target_temperature = self.target_temperature
         self._fan_mode = self.fan_mode
         self._hvac_mode = self.hvac_mode
@@ -120,6 +122,15 @@ class FujitsuClimate(ClimateEntity):
             return True
         else:
             return False
+        
+    @property
+    def current_temperature(self):
+        """Return the current temperature in degrees Celcius."""
+        curtemp = self._fujitsu_device._get_prop_from_json('display_temperature', self._fujitsu_device._properties)
+        if self._region == 'us':
+           return round(curtemp['value'] / 100, 1)
+        else:
+           return round((curtemp['value'] / 100 - 32) * 5/9, 1)
 
     @property
     def target_temperature(self):
