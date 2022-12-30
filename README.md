@@ -48,7 +48,7 @@ climate:
    - platform: fglair_heatpump_controller
      username: <your FGLair username>
      password: <your FGLair password> 
-     region: [eu, cn, us] (optional, default: us)
+     region: ['eu' | 'cn' | 'us' | 'ca' | 'au' | '`your country code`'] (optional, default: 'us')
      tokenpath: (optional, default: 'token.txt')       
 ```
 
