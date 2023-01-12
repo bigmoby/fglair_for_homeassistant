@@ -127,6 +127,9 @@ class FujitsuClimate(ClimateEntity):
     def current_temperature(self):
         """Return the current temperature in degrees Celcius."""
         curtemp = self._fujitsu_device._get_prop_from_json('display_temperature', self._fujitsu_device._properties)
+        _LOGGER.debug("Display_temperature json: %s", curtemp)
+        _LOGGER.debug("Display_temperature: %s", curtemp['value'])
+        _LOGGER.debug("Region: %s", self._region)
         if self._region == 'us':
            return round(curtemp['value'] / 100, 1)
         else:
