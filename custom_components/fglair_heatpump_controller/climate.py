@@ -130,10 +130,11 @@ class FujitsuClimate(ClimateEntity):
         _LOGGER.debug("Display_temperature json: %s", curtemp)
         _LOGGER.debug("Display_temperature: %s", curtemp['value'])
         _LOGGER.debug("Region: %s", self._region)
-        if self._region == 'us':
-           return round(curtemp['value'] / 100, 1)
-        else:
-           return round((curtemp['value'] / 100 - 32) * 5/9, 1)
+        #if self._region == 'us':
+        #   return round(curtemp['value'] / 100, 1)
+        #else:
+        #   return round((curtemp['value'] / 100 - 32) * 5/9, 1)
+        return round((curtemp['value'] / 100 - 32) * 5/9, 1)
 
     @property
     def target_temperature(self):
