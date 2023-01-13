@@ -2,13 +2,18 @@
 Support for the Fujitsu General Split A/C Wifi platform AKA FGLair .
 """
 
+from __future__ import annotations
+
 import logging
 import voluptuous as vol
 
 from pyfujitseu.api import Api as fgapi
 from pyfujitseu.splitAC import splitAC
 
-from homeassistant.components.climate import ClimateEntity, PLATFORM_SCHEMA
+from homeassistant.components.climate import (
+    ClimateEntity, 
+    PLATFORM_SCHEMA
+)    
 from homeassistant.components.climate.const import (
     HVAC_MODE_OFF, HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_AUTO, HVAC_MODE_DRY, HVAC_MODE_FAN_ONLY,
     SUPPORT_FAN_MODE, SUPPORT_SWING_MODE, SUPPORT_TARGET_TEMPERATURE, SUPPORT_AUX_HEAT, SUPPORT_PRESET_MODE,
@@ -53,6 +58,8 @@ DICT_FAN_MODE = {
     "High": FAN_HIGH,
     "Quiet": FAN_DIFFUSE
 }
+
+DEFAULT_MIN_STEP: Final = 1.0
 
 def setup_platform(hass, config, add_entities, discovery_info = None):
     """Setup the E-Thermostaat Platform."""
@@ -124,27 +131,25 @@ class FujitsuClimate(ClimateEntity):
             return False
         
     @property
-    def current_temperature(self):
-        """Return the current temperature in degrees Celcius."""
+    def current_temperature(self) -> float | None:
+        """Return the current temperature in degrees Celsius."""
         curtemp = self._fujitsu_device._get_prop_from_json('display_temperature', self._fujitsu_device._properties)
         _LOGGER.debug("Display_temperature json: %s", curtemp)
         _LOGGER.debug("Display_temperature: %s", curtemp['value'])
         _LOGGER.debug("Region: %s", self._region)
-        #if self._region == 'us':
-        #   return round(curtemp['value'] / 100, 1)
-        #else:
-        #   return round((curtemp['value'] / 100 - 32) * 5/9, 1)
+        if curtemp['value'] == 65535 :
+            return None
         return round((curtemp['value'] / 100 - 32) * 5/9, 1)
 
     @property
-    def target_temperature(self):
+    def target_temperature(self) -> float | None:
         """Return the temperature we try to reach."""
         return self._fujitsu_device.adjust_temperature_degree
 
     @property
-    def target_temperature_step(self):
+    def target_temperature_step(self) -> float:
         """Return the supported step of target temperature."""
-        return 1
+        return DEFAULT_MIN_STEP
 
     @property
     def is_on(self):
@@ -155,7 +160,7 @@ class FujitsuClimate(ClimateEntity):
             return False
 
     @property
-    def hvac_mode(self):
+    def hvac_mode(self) -> str | None:
         """Return current operation ie. heat, cool, idle."""
         _LOGGER.debug(self._name)
         _LOGGER.debug("FujitsuClimate hvac_mode: %s", self._fujitsu_device.operation_mode['value'])
