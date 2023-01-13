@@ -2,7 +2,7 @@
 Support for the Fujitsu General Split A/C Wifi platform AKA FGLair .
 """
 
-from __future__ import annotations
+from typing import Final
 
 import logging
 import voluptuous as vol
@@ -13,10 +13,10 @@ from pyfujitseu.splitAC import splitAC
 from homeassistant.components.climate import (
     ClimateEntity, 
     PLATFORM_SCHEMA
-)    
+)
 from homeassistant.components.climate.const import (
     HVAC_MODE_OFF, HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_AUTO, HVAC_MODE_DRY, HVAC_MODE_FAN_ONLY,
-    SUPPORT_FAN_MODE, SUPPORT_SWING_MODE, SUPPORT_TARGET_TEMPERATURE, SUPPORT_AUX_HEAT, SUPPORT_PRESET_MODE,
+    SUPPORT_FAN_MODE, SUPPORT_SWING_MODE, SUPPORT_TARGET_TEMPERATURE, SUPPORT_PRESET_MODE,
     FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_DIFFUSE,
     SWING_OFF, SWING_ON, SWING_VERTICAL, SWING_HORIZONTAL, SWING_BOTH,
     PRESET_NONE, PRESET_ECO,
