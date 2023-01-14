@@ -22,7 +22,11 @@ from homeassistant.components.climate.const import (
     PRESET_NONE, PRESET_ECO,
     CURRENT_HVAC_HEAT, CURRENT_HVAC_IDLE)
 from homeassistant.const import (
-    ATTR_TEMPERATURE, CONF_USERNAME, CONF_PASSWORD, TEMP_CELSIUS)
+    ATTR_TEMPERATURE, 
+    CONF_USERNAME, 
+    CONF_PASSWORD, 
+    UnitOfTemperature
+)
 import homeassistant.helpers.config_validation as cv
 
 __version__ = '0.1.0'
@@ -35,6 +39,8 @@ _LOGGER = logging.getLogger(__name__)
 # Values from web interface
 MIN_TEMP = 16
 MAX_TEMP = 30
+DEFAULT_TEMPERATURE_OFFSET: Final  = 0.0
+DEFAULT_MIN_STEP: Final = 1.0
 
 SUPPORT_FLAGS = SUPPORT_FAN_MODE | SUPPORT_SWING_MODE | SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE 
 
@@ -43,7 +49,13 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_PASSWORD): cv.string,
     vol.Optional('region'): cv.string,
     vol.Optional('tokenpath'): cv.string,
-
+    vol.Optional(
+        'temperature_offset', 
+        default=DEFAULT_TEMPERATURE_OFFSET
+    ): vol.All(
+        vol.Coerce(float), 
+        vol.Range(min=-5, max=5)
+    ),
 })
 
 DICT_FAN_MODE = {
@@ -59,8 +71,6 @@ DICT_FAN_MODE = {
     "Quiet": FAN_DIFFUSE
 }
 
-DEFAULT_MIN_STEP: Final = 1.0
-
 def setup_platform(hass, config, add_entities, discovery_info = None):
     """Setup the E-Thermostaat Platform."""
 
@@ -70,6 +80,7 @@ def setup_platform(hass, config, add_entities, discovery_info = None):
     password = config.get(CONF_PASSWORD)
     region = config.get('region')
     tokenpath = config.get('tokenpath')
+    temperature_offset = config.get('temperature_offset', DEFAULT_TEMPERATURE_OFFSET)
     _LOGGER.debug("FujitsuClimate config.get ")
 
     fglairapi = fgapi(username, password, region, tokenpath)
@@ -81,20 +92,21 @@ def setup_platform(hass, config, add_entities, discovery_info = None):
     _LOGGER.debug("FujitsuClimate fglairapi._authenticate ")
 
     devices = fglairapi.get_devices_dsn()
-    add_entities(FujitsuClimate(fglairapi, dsn, region) for dsn in devices)
+    add_entities(FujitsuClimate(fglairapi, dsn, region, temperature_offset) for dsn in devices)
     _LOGGER.debug("FujitsuClimate setup_platform fine")
 
 
 class FujitsuClimate(ClimateEntity):
     """Representation of a E-Thermostaat device."""
 
-    def __init__(self, api, dsn, region):
+    def __init__(self, api, dsn, region, temperature_offset):
         """Initialize the thermostat."""
         _LOGGER.debug("FujitsuClimate init called for dsn: %s", dsn)
         _LOGGER.debug("FujitsuClimate pyfujitseu.splitAC called")
         self._api = api
         self._dsn = dsn
         self._region = region
+        self._temperature_offset = temperature_offset
         self._fujitsu_device = splitAC(self._dsn, self._api)
         _LOGGER.debug("FujitsuClimate _fujitsu_device setup.")
         self._name = self.name
@@ -139,7 +151,7 @@ class FujitsuClimate(ClimateEntity):
         _LOGGER.debug("Region: %s", self._region)
         if curtemp['value'] == 65535 :
             return None
-        return round((curtemp['value'] / 100 - 32) * 5/9, 1)
+        return round(((curtemp['value'] / 100 - 32) * 5/9) + self._temperature_offset, 1)
 
     @property
     def target_temperature(self) -> float | None:
@@ -313,7 +325,7 @@ class FujitsuClimate(ClimateEntity):
     @property
     def temperature_unit(self):
         """Return the unit of measurement."""
-        return TEMP_CELSIUS
+        return UnitOfTemperature.CELSIUS
 
     @property
     def supported_features(self):
