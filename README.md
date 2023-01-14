@@ -49,7 +49,8 @@ climate:
      username: <your FGLair username>
      password: <your FGLair password> 
      region: ['eu' | 'cn' | 'us' | 'ca' | 'au' | '`your country code`'] (optional, default: 'us')
-     tokenpath: (optional, default: 'token.txt')       
+     tokenpath: (optional, default: 'token.txt') 
+     temperature_offset: (optional, default: 0)
 ```
 
 Full Example:
@@ -60,6 +61,7 @@ climate:
     password: !secret FGLAIR_PASS
     region: 'eu'
     tokenpath: 'token.txt'
+    temperature_offset: -2.0
 ```
 
 4. Restart Home Assistant in order for the new component to show and all of your A/Cs in your account should appear in HASS.
