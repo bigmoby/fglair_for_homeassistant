@@ -19,7 +19,7 @@ from homeassistant.components.climate.const import (
     SUPPORT_FAN_MODE, SUPPORT_SWING_MODE, SUPPORT_TARGET_TEMPERATURE, SUPPORT_PRESET_MODE,
     FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_DIFFUSE,
     SWING_OFF, SWING_ON, SWING_VERTICAL, SWING_HORIZONTAL, SWING_BOTH,
-    PRESET_NONE, PRESET_ECO,
+    PRESET_NONE, PRESET_ECO, PRESET_BOOST,
     CURRENT_HVAC_HEAT, CURRENT_HVAC_IDLE)
 from homeassistant.const import (
     ATTR_TEMPERATURE, 
@@ -121,7 +121,7 @@ class FujitsuClimate(ClimateEntity):
         self._fan_modes = [FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_DIFFUSE]
         self._hvac_modes = [HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_AUTO, HVAC_MODE_DRY, HVAC_MODE_FAN_ONLY, HVAC_MODE_OFF]
         self._swing_modes = [SWING_OFF, SWING_ON, SWING_VERTICAL, SWING_HORIZONTAL]
-        self._preset_modes = [PRESET_NONE, PRESET_ECO]
+        self._preset_modes = [PRESET_NONE, PRESET_ECO, PRESET_BOOST]
         self._on = self.is_on
 
         _LOGGER.debug("FujitsuClimate init fine.")
@@ -281,9 +281,12 @@ class FujitsuClimate(ClimateEntity):
     def preset_mode(self):
         """Return the preset setting."""
         _LOGGER.debug(self._name)
-        _LOGGER.debug("FujitsuClimate preset setting: %s", self._fujitsu_device.economy_mode['value'])
+        _LOGGER.debug("FujitsuClimate preset eco setting: %s", self._fujitsu_device.economy_mode['value'])
+        _LOGGER.debug("FujitsuClimate preset boost setting: %s", self._fujitsu_device.powerful_mode['value'])
         if self._fujitsu_device.economy_mode['value'] == 1:
             return PRESET_ECO
+        if self._fujitsu_device.powerful_mode['value'] == 1:
+            return PRESET_BOOST
         return PRESET_NONE
 
     @property
@@ -299,6 +302,8 @@ class FujitsuClimate(ClimateEntity):
             self._fujitsu_device.economy_mode = 0
         elif preset_mode == PRESET_ECO:
             self._fujitsu_device.economy_mode = 1
+        elif preset_mode == PRESET_BOOST:
+            self._fujitsu_device.powerful_mode = 1
 
     ############old stufffff
 
