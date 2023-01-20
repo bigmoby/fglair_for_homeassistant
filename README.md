@@ -42,13 +42,13 @@ https://github.com/bigmoby/fglair_for_homeassistant
 
 ### Usage:
 
-Add the below lines to your `configuration.yaml` file and replace it with your FGLair app username/password:
+Add the below lines to your `configuration.yaml` file and replace it with your FGLair app username/password and region your FGLair account is registered (eu, cn or us):
 ```
 climate:
    - platform: fglair_heatpump_controller
      username: <your FGLair username>
      password: <your FGLair password> 
-     region: ['eu' | 'cn' | 'us' | 'ca' | 'au' | '`your country code`'] (optional, default: 'us')
+     region: ['eu' | 'cn' | 'us'] (optional, default: 'us')
      tokenpath: (optional, default: 'token.txt') 
      temperature_offset: (optional, default: 0)
 ```
