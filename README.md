@@ -69,7 +69,7 @@ climate:
 ## Known issues and missing features:
 
 - [X] Logging needs to be implemented
-- [X] The “powerful” functionality is implemented through aux_heat button in UI
+- [X] The “powerful” functionality is implemented via the preset selections in the UI
 - [ ] There are some other functionalities in the A/C which currently is not implemented.
 - [ ] Possibility to add external temperature sensor
 
