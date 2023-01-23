@@ -16,7 +16,7 @@ from homeassistant.components.climate import (
 )
 from homeassistant.components.climate.const import (
     HVAC_MODE_OFF, HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_AUTO, HVAC_MODE_DRY, HVAC_MODE_FAN_ONLY,
-    SUPPORT_FAN_MODE, SUPPORT_SWING_MODE, SUPPORT_TARGET_TEMPERATURE, SUPPORT_PRESET_MODE,
+    SUPPORT_FAN_MODE, SUPPORT_SWING_MODE, SUPPORT_AUX_HEAT, SUPPORT_TARGET_TEMPERATURE, SUPPORT_PRESET_MODE,
     FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_DIFFUSE,
     SWING_OFF, SWING_ON, SWING_VERTICAL, SWING_HORIZONTAL, SWING_BOTH,
     PRESET_NONE, PRESET_ECO, PRESET_BOOST,
@@ -42,7 +42,7 @@ MAX_TEMP = 30
 DEFAULT_TEMPERATURE_OFFSET: Final  = 0.0
 DEFAULT_MIN_STEP: Final = 1.0
 
-SUPPORT_FLAGS = SUPPORT_FAN_MODE | SUPPORT_SWING_MODE | SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE 
+SUPPORT_FLAGS = SUPPORT_FAN_MODE | SUPPORT_SWING_MODE | SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE | SUPPORT_AUX_HEAT
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_USERNAME): cv.string,
@@ -111,7 +111,7 @@ class FujitsuClimate(ClimateEntity):
         _LOGGER.debug("FujitsuClimate _fujitsu_device setup.")
         self._name = self.name
         _LOGGER.debug("FujitsuClimate name set: %s", self._name)
-        self._aux_heat = self.is_aux_heat_on
+        self._aux_heat = self.is_aux_heat
         self._current_temperature = self.current_temperature
         self._target_temperature = self.target_temperature
         self._fan_mode = self.fan_mode
@@ -121,7 +121,7 @@ class FujitsuClimate(ClimateEntity):
         self._fan_modes = [FAN_AUTO, FAN_LOW, FAN_MEDIUM, FAN_HIGH, FAN_DIFFUSE]
         self._hvac_modes = [HVAC_MODE_HEAT, HVAC_MODE_COOL, HVAC_MODE_AUTO, HVAC_MODE_DRY, HVAC_MODE_FAN_ONLY, HVAC_MODE_OFF]
         self._swing_modes = [SWING_OFF, SWING_ON, SWING_VERTICAL, SWING_HORIZONTAL]
-        self._preset_modes = [PRESET_NONE, PRESET_ECO, PRESET_BOOST]
+        self._preset_modes = [PRESET_NONE, PRESET_ECO]
         self._on = self.is_on
 
         _LOGGER.debug("FujitsuClimate init fine.")
@@ -133,15 +133,21 @@ class FujitsuClimate(ClimateEntity):
         return self._fujitsu_device.device_name['value']
 
     @property
-    def is_aux_heat_on(self):
+    def is_aux_heat(self):
         """Reusing is for Powerfull mode."""
-        if not hasattr(self._fujitsu_device.powerful_mode, 'value'):
-            return False
-        elif self._fujitsu_device.powerful_mode['value'] == 1:
+        if self._fujitsu_device.powerful_mode['value'] == 1:
             return True
         else:
             return False
-        
+      
+    def turn_aux_heat_on(self):
+        """Turn auxiliary heater on."""
+        self._fujitsu_device.powerful_mode = 1
+    
+    def turn_aux_heat_off(self):
+        """Turn auxiliary heater off."""        
+        self._fujitsu_device.powerful_mode = 0
+
     @property
     def current_temperature(self) -> float | None:
         """Return the current temperature in degrees Celsius."""
@@ -282,11 +288,8 @@ class FujitsuClimate(ClimateEntity):
         """Return the preset setting."""
         _LOGGER.debug(self._name)
         _LOGGER.debug("FujitsuClimate preset eco setting: %s", self._fujitsu_device.economy_mode['value'])
-        _LOGGER.debug("FujitsuClimate preset boost setting: %s", self._fujitsu_device.powerful_mode['value'])
         if self._fujitsu_device.economy_mode['value'] == 1:
             return PRESET_ECO
-        if self._fujitsu_device.powerful_mode['value'] == 1:
-            return PRESET_BOOST
         return PRESET_NONE
 
     @property
@@ -302,8 +305,6 @@ class FujitsuClimate(ClimateEntity):
             self._fujitsu_device.economy_mode = 0
         elif preset_mode == PRESET_ECO:
             self._fujitsu_device.economy_mode = 1
-        elif preset_mode == PRESET_BOOST:
-            self._fujitsu_device.powerful_mode = 1
 
     ############old stufffff
 
