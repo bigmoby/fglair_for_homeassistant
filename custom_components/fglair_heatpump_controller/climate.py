@@ -300,6 +300,7 @@ class FujitsuClimate(ClimateEntity):
         _LOGGER.debug("FujitsuClimate preset choice: %s", preset_mode.upper())
         if preset_mode == PRESET_NONE:
             self._fujitsu_device.economy_mode = 0
+            self._fujitsu_device.powerful_mode = 0
         elif preset_mode == PRESET_ECO:
             self._fujitsu_device.economy_mode = 1
         elif preset_mode == PRESET_BOOST:
