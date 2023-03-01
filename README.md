@@ -11,7 +11,7 @@
 
 ![FGLAIR_LOGO](FGLair_logo.png)
 
-This is a platform to support Fujitsu General Airconditioners under Climate component of Home Assistant. The Python supporting library for accessing the FGLair&trade; API is located at: https://github.com/bigmoby/pyfujitseu/
+This is a platform to support Fujitsu General Airconditioners under Climate component of Home Assistant. The Python supporting library for accessing the FGLair&trade; API is located at: https://github.com/bigmoby/pyfujitsugeneral/
 
 ## Sample UI:
 
@@ -23,9 +23,9 @@ This is a platform to support Fujitsu General Airconditioners under Climate comp
 
 1. Create this directory path `custom_components/fglair_heatpump_controller/` if it does not already exist.
 
-2. Download the `climate.py` `manifest.json` and `__init__.py` from the repo and place it in the  directory mentioned in previous step. 
+2. Download the `climate.py` `manifest.json` and `__init__.py` from the repo and place it in the  directory mentioned in previous step.
 
-So the end result would look like: 
+So the end result would look like:
 `/custom_components/fglair_heatpump_controller/climate.py`
 `/custom_components/fglair_heatpump_controller/manifest.json`
 `/custom_components/fglair_heatpump_controller/__init__.py`
@@ -36,7 +36,7 @@ So the end result would look like:
 https://github.com/bigmoby/fglair_for_homeassistant
 ```
 
-2. Search for the `FGLair integration for homeassistant` integration and choose install. 
+2. Search for the `FGLair integration for homeassistant` integration and choose install.
 
 3. Reboot Home Assistant.
 
@@ -47,9 +47,9 @@ Add the below lines to your `configuration.yaml` file and replace it with your F
 climate:
    - platform: fglair_heatpump_controller
      username: <your FGLair username>
-     password: <your FGLair password> 
+     password: <your FGLair password>
      region: ['eu' | 'cn' | 'us'] (optional, default: 'us')
-     tokenpath: (optional, default: 'token.txt') 
+     tokenpath: (optional, default: 'token.txt')
      temperature_offset: (optional, default: 0)
 ```
 
