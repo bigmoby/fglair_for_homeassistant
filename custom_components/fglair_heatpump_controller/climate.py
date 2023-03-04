@@ -184,17 +184,22 @@ class FujitsuClimate(ClimateEntity):
         curtemp = self._fujitsu_device._get_prop_from_json(
             "display_temperature", self._fujitsu_device._properties
         )
-        data = None
         if not curtemp:
+            return None
+        else:
             _LOGGER.debug("Display_temperature json: %s", curtemp)
             _LOGGER.debug("Display_temperature: %s", curtemp["value"])
             _LOGGER.debug("Region: %s", self._region)
             if curtemp["value"] == 65535:
+                _LOGGER.debug("Display_temperature value not valid.")
                 return None
-            data = round(
-                ((curtemp["value"] / 100 - 32) * 5 / 9) + self._temperature_offset, 1
+
+            return float(
+                round(
+                    ((curtemp["value"] / 100 - 32) * 5 / 9) + self._temperature_offset,
+                    1,
+                )
             )
-        return data
 
     @property
     def target_temperature(self) -> float:
