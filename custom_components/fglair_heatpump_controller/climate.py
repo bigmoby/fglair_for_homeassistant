@@ -185,7 +185,7 @@ class FujitsuClimate(ClimateEntity):
             "display_temperature", self._fujitsu_device._properties
         )
         data = None
-        if curtemp is not None:
+        if not curtemp:
             _LOGGER.debug("Display_temperature json: %s", curtemp)
             _LOGGER.debug("Display_temperature: %s", curtemp["value"])
             _LOGGER.debug("Region: %s", self._region)
