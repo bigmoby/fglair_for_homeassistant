@@ -99,7 +99,6 @@ def setup_platform(
     region = config.get("region")
     tokenpath = config.get("tokenpath", DEFAULT_TOKEN_PATH)
     temperature_offset = config.get("temperature_offset", DEFAULT_TEMPERATURE_OFFSET)
-    _LOGGER.debug("FujitsuClimate config.get ")
 
     fglairapi = fgapi(username, password, region, tokenpath)
 
@@ -126,9 +125,8 @@ class FujitsuClimate(ClimateEntity):
         self._region = region
         self._temperature_offset = temperature_offset
         self._fujitsu_device = splitAC(self._dsn, self._api)
-        _LOGGER.debug("FujitsuClimate _fujitsu_device setup.")
+        _LOGGER.debug("FujitsuClimate instantiate splitAC")
         self._name = self.name
-        _LOGGER.debug("FujitsuClimate name set: %s", self._name)
         self._aux_heat = self.is_aux_heat_on
         self._current_temperature = self.current_temperature
         self._target_temperature = self.target_temperature
@@ -160,12 +158,17 @@ class FujitsuClimate(ClimateEntity):
         self._preset_modes: list[Any] = [PRESET_NONE, PRESET_ECO, PRESET_BOOST]
         self._on = self.is_on
 
-        _LOGGER.debug("FujitsuClimate name set: %s", self._fujitsu_device._properties)
+        _LOGGER.debug(
+            "FujitsuClimate finish init for device [%s] properties [%s]",
+            self.name,
+            self._fujitsu_device._properties,
+        )
 
     @property
     def name(self) -> str:
         """Return the name of the thermostat."""
         data: str = self._fujitsu_device.device_name["value"]
+        _LOGGER.debug("FujitsuClimate return device name [%s]", data)
         return data
 
     @property
@@ -187,9 +190,11 @@ class FujitsuClimate(ClimateEntity):
         if not curtemp:
             return None
         else:
-            _LOGGER.debug("Display_temperature json: %s", curtemp)
-            _LOGGER.debug("Display_temperature: %s", curtemp["value"])
-            _LOGGER.debug("Region: %s", self._region)
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] return Display_temperature json [%s]",
+                self._name,
+                curtemp,
+            )
             if curtemp["value"] == 65535:
                 _LOGGER.debug("Display_temperature value not valid.")
                 return None
@@ -223,9 +228,10 @@ class FujitsuClimate(ClimateEntity):
     @property
     def hvac_mode(self) -> Any:
         """Return current operation ie. heat, cool, idle."""
-        _LOGGER.debug(self._name)
         _LOGGER.debug(
-            "FujitsuClimate hvac_mode: %s", self._fujitsu_device.operation_mode["value"]
+            "FujitsuClimate device [%s] return current hvac_mode [%s]",
+            self._name,
+            self._fujitsu_device.operation_mode["value"],
         )
         return self._fujitsu_device.operation_mode_desc
 
@@ -236,9 +242,9 @@ class FujitsuClimate(ClimateEntity):
 
     def set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set HVAC mode."""
-        _LOGGER.debug(self._name)
         _LOGGER.debug(
-            "FujitsuClimate set_hvac_mode called. self._hvac_mode: %s ; hvac_mode: %s",
+            "FujitsuClimate device [%s] set_hvac_mode called.current _hvac_mode [%s] ; new hvac_mode [%s]",
+            self._name,
             self._hvac_mode,
             hvac_mode,
         )
@@ -246,33 +252,32 @@ class FujitsuClimate(ClimateEntity):
             """Turn device off."""
             self._fujitsu_device.turnOff()
         elif self._hvac_mode != hvac_mode:
-            _LOGGER.debug("FujitsuClimate set_hvac_mode elif path called. ")
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] set_hvac_mode elif path called. ",
+                self._name,
+            )
             self._fujitsu_device.changeOperationMode(hvac_mode)
 
     def set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
-        _LOGGER.debug(self._name)
         _LOGGER.debug(
-            "FujitsuClimate set_temperature: %s ; 2: %s",
-            kwargs.get(ATTR_TEMPERATURE),
+            "FujitsuClimate device [%s] set_temperature [%s]",
+            self._name,
             kwargs.get(ATTR_TEMPERATURE),
         )
         self._fujitsu_device.changeTemperature(kwargs.get(ATTR_TEMPERATURE))
 
     def update(self) -> None:
         """Retrieve latest state."""
-        _LOGGER.debug(self._name)
-        _LOGGER.debug(
-            "Update FujitsuClimate", self._fujitsu_device.refresh_properties()
-        )
+        _LOGGER.debug("Update FujitsuClimate device [%s]", self._name)
         self._fujitsu_device.refresh_properties()
 
     @property
     def fan_mode(self) -> Any:
         """Return the fan setting."""
-        _LOGGER.debug(self._name)
         _LOGGER.debug(
-            "FujitsuClimate fan_mode: %s",
+            "FujitsuClimate device [%s] return fan_mode [%s]",
+            self._name,
             DICT_FAN_MODE[self._fujitsu_device.get_fan_speed_desc()],
         )
         return DICT_FAN_MODE[self._fujitsu_device.get_fan_speed_desc()]
@@ -284,9 +289,9 @@ class FujitsuClimate(ClimateEntity):
 
     def set_fan_mode(self, fan_mode: Any) -> None:
         """Set fan mode."""
-        _LOGGER.debug(self._name)
         _LOGGER.debug(
-            "FujitsuClimate fan modes: %s",
+            "FujitsuClimate device [%s] set fan mode [%s]",
+            self._name,
             self._fujitsu_device.changeFanSpeed(DICT_FAN_MODE[fan_mode]),
         )
         self._fujitsu_device.changeFanSpeed(DICT_FAN_MODE[fan_mode])
@@ -294,21 +299,36 @@ class FujitsuClimate(ClimateEntity):
     @property
     def swing_mode(self) -> str:
         """Return the swing setting."""
-        if not hasattr(self._fujitsu_device.af_vertical_swing, "value") or not hasattr(
+        has_af_vertical_swing = hasattr(self._fujitsu_device.af_vertical_swing, "value")
+        has_af_horizontal_swing = hasattr(
             self._fujitsu_device.af_horizontal_swing, "value"
-        ):
+        )
+        if not has_af_vertical_swing or not has_af_horizontal_swing:
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] swing vertical [%s] swing horizontal [%s]",
+                self._name,
+                has_af_vertical_swing,
+                has_af_horizontal_swing,
+            )
             return "off"
         else:
-            _LOGGER.debug(self._name)
             _LOGGER.debug(
-                "FujitsuClimate swing vertical settings: %s",
+                "FujitsuClimate device [%s] swing vertical settings [%s]",
+                self._name,
                 self._fujitsu_device.af_vertical_swing["value"],
             )
-            _LOGGER.debug(self._name)
             _LOGGER.debug(
-                "FujitsuClimate swing horizontal settings: %s",
+                "FujitsuClimate device [%s] swing horizontal settings [%s]",
+                self._name,
                 self._fujitsu_device.af_horizontal_swing["value"],
             )
+
+            AC_TO_HA_SWING = {
+                "00": SWING_OFF,
+                "10": SWING_VERTICAL,
+                "01": SWING_HORIZONTAL,
+                "11": SWING_ON,
+            }
 
             if (
                 self._fujitsu_device.af_vertical_swing["value"] == 1
@@ -335,43 +355,51 @@ class FujitsuClimate(ClimateEntity):
 
     def set_swing_mode(self, swing_mode: Any) -> None:
         """Set new target swing."""
-        _LOGGER.debug(self._name)
-        _LOGGER.debug("FujitsuClimate swing choice: %s", swing_mode.upper())
+        _LOGGER.debug(
+            "FujitsuClimate device [%s] swing choice [%s]",
+            self._name,
+            swing_mode.upper(),
+        )
         if swing_mode.upper() == "ON":
             self._fujitsu_device.af_vertical_swing = 1
             self._fujitsu_device.af_horizontal_swing = 1
-            _LOGGER.debug(self._name)
-            _LOGGER.debug("FujitsuClimate swing choice valide: ON")
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] swing choice valid: ON", self._name
+            )
         if swing_mode.upper() == "OFF":
             self._fujitsu_device.af_vertical_swing = 0
             self._fujitsu_device.af_horizontal_swing = 0
-            _LOGGER.debug(self._name)
-            _LOGGER.debug("FujitsuClimate swing choice valide: OFF")
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] swing choice valid: OFF", self._name
+            )
         if swing_mode.upper() == "VERTICAL":
             self._fujitsu_device.af_vertical_swing = 1
             self._fujitsu_device.af_horizontal_swing = 0
-            _LOGGER.debug(self._name)
-            _LOGGER.debug("FujitsuClimate swing choice valide: VERTICAL")
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] swing choice valid: VERTICAL", self._name
+            )
         if swing_mode.upper() == "HORIZONTAL":
             self._fujitsu_device.af_vertical_swing = 0
             self._fujitsu_device.af_horizontal_swing = 1
-            _LOGGER.debug(self._name)
-            _LOGGER.debug("FujitsuClimate swing choice valide: HORIZONTAL")
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] swing choice valid: HORIZONTAL", self._name
+            )
         # if swing_mode.upper() == 'BOTH':
         #    self._fujitsu_device.af_vertical_swing = 1
         #    self._fujitsu_device.af_horizontal_swing = 1
-        #    _LOGGER.debug("FujitsuClimate swing choice valide: BOTH")
+        #    _LOGGER.debug("FujitsuClimate swing choice valid: BOTH")
 
     @property
     def preset_mode(self) -> Any:
         """Return the preset setting."""
-        _LOGGER.debug(self._name)
         _LOGGER.debug(
-            "FujitsuClimate preset eco setting: %s",
+            "FujitsuClimate device [%s] preset eco setting: %s",
+            self._name,
             self._fujitsu_device.economy_mode["value"],
         )
         _LOGGER.debug(
-            "FujitsuClimate preset boost setting: %s",
+            "FujitsuClimate device [%s] preset boost setting: %s",
+            self._name,
             self._fujitsu_device.powerful_mode["value"],
         )
         if self._fujitsu_device.economy_mode["value"] == 1:
@@ -387,8 +415,11 @@ class FujitsuClimate(ClimateEntity):
 
     def set_preset_mode(self, preset_mode: Any) -> None:
         """Set preset mode."""
-        _LOGGER.debug(self._name)
-        _LOGGER.debug("FujitsuClimate preset choice: %s", preset_mode.upper())
+        _LOGGER.debug(
+            "FujitsuClimate device [%s] preset choice: %s",
+            self._name,
+            preset_mode.upper(),
+        )
         if preset_mode == PRESET_NONE:
             self._fujitsu_device.economy_mode = 0
             self._fujitsu_device.powerful_mode = 0
@@ -397,7 +428,7 @@ class FujitsuClimate(ClimateEntity):
         elif preset_mode == PRESET_BOOST:
             self._fujitsu_device.powerful_mode = 1
 
-    ############old stufffff
+    ############ old stuff
 
     @property
     def unique_id(self) -> str:
