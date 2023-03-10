@@ -289,12 +289,14 @@ class FujitsuClimate(ClimateEntity):
 
     def set_fan_mode(self, fan_mode: Any) -> None:
         """Set fan mode."""
+        new_fan_speed = DICT_FAN_MODE[fan_mode]
         _LOGGER.debug(
-            "FujitsuClimate device [%s] set fan mode [%s]",
+            "FujitsuClimate device [%s] set fan mode [%s], fan speed [%s]",
             self._name,
-            self._fujitsu_device.changeFanSpeed(DICT_FAN_MODE[fan_mode]),
+            fan_mode,
+            new_fan_speed,
         )
-        self._fujitsu_device.changeFanSpeed(DICT_FAN_MODE[fan_mode])
+        self._fujitsu_device.changeFanSpeed(new_fan_speed)
 
     @property
     def swing_mode(self) -> str:
@@ -303,9 +305,10 @@ class FujitsuClimate(ClimateEntity):
         has_af_horizontal_swing = hasattr(
             self._fujitsu_device.af_horizontal_swing, "value"
         )
+        _LOGGER.debug("FujitsuClimate device [%s] return swing mode", self._name)
         if not has_af_vertical_swing or not has_af_horizontal_swing:
             _LOGGER.debug(
-                "FujitsuClimate device [%s] swing vertical [%s] swing horizontal [%s]",
+                "FujitsuClimate device [%s] has swing vertical [%s]; has swing horizontal [%s]",
                 self._name,
                 has_af_vertical_swing,
                 has_af_horizontal_swing,
