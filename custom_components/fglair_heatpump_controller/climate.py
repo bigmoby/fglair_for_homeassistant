@@ -323,13 +323,6 @@ class FujitsuClimate(ClimateEntity):
                 self._fujitsu_device.af_horizontal_swing["value"],
             )
 
-            AC_TO_HA_SWING = {
-                "00": SWING_OFF,
-                "10": SWING_VERTICAL,
-                "01": SWING_HORIZONTAL,
-                "11": SWING_ON,
-            }
-
             if (
                 self._fujitsu_device.af_vertical_swing["value"] == 1
                 and self._fujitsu_device.af_horizontal_swing["value"] == 1
