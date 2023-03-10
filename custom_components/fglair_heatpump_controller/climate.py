@@ -190,21 +190,19 @@ class FujitsuClimate(ClimateEntity):
         if not curtemp:
             return None
         else:
-            _LOGGER.debug(
-                "FujitsuClimate device [%s] return Display_temperature json [%s]",
-                self._name,
-                curtemp,
-            )
             if curtemp["value"] == 65535:
                 _LOGGER.debug("Display_temperature value not valid.")
                 return None
 
-            return float(
-                round(
-                    ((curtemp["value"] / 100 - 32) * 5 / 9) + self._temperature_offset,
-                    1,
-                )
+            converted_display_temperature = round(
+                ((curtemp["value"] / 100 - 32) * 5 / 9) + self._temperature_offset, 1
             )
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] return display_temperature [%s]",
+                self._name,
+                converted_display_temperature,
+            )
+            return float(converted_display_temperature)
 
     @property
     def target_temperature(self) -> float:
@@ -229,9 +227,10 @@ class FujitsuClimate(ClimateEntity):
     def hvac_mode(self) -> Any:
         """Return current operation ie. heat, cool, idle."""
         _LOGGER.debug(
-            "FujitsuClimate device [%s] return current hvac_mode [%s]",
+            "FujitsuClimate device [%s] return current hvac_mode [%s] ; operation_mode_desc [%s]",
             self._name,
             self._fujitsu_device.operation_mode["value"],
+            self._fujitsu_device.operation_mode_desc,
         )
         return self._fujitsu_device.operation_mode_desc
 
@@ -308,7 +307,7 @@ class FujitsuClimate(ClimateEntity):
         _LOGGER.debug("FujitsuClimate device [%s] return swing mode", self._name)
         if not has_af_vertical_swing or not has_af_horizontal_swing:
             _LOGGER.debug(
-                "FujitsuClimate device [%s] has swing vertical [%s]; has swing horizontal [%s]",
+                "FujitsuClimate device [%s] has swing vertical [%s] ; has swing horizontal [%s]",
                 self._name,
                 has_af_vertical_swing,
                 has_af_horizontal_swing,
