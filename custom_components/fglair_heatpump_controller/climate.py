@@ -300,13 +300,16 @@ class FujitsuClimate(ClimateEntity):
     @property
     def swing_mode(self) -> str:
         """Return the swing setting."""
-
         if not self._fujitsu_device._get_prop_from_json(
             "af_vertical_swing", self._fujitsu_device._properties
         ) or not self._fujitsu_device._get_prop_from_json(
             "af_horizontal_swing", self._fujitsu_device._properties
         ):
-            return "off"
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] has no swing props",
+                self._name,
+            )
+            return SWING_OFF
         else:
             _LOGGER.debug(self._name)
             _LOGGER.debug(
@@ -323,19 +326,39 @@ class FujitsuClimate(ClimateEntity):
                 self._fujitsu_device.af_vertical_swing["value"] == 1
                 and self._fujitsu_device.af_horizontal_swing["value"] == 1
             ):
-                return "on"
+                _LOGGER.debug(
+                    "FujitsuClimate device [%s] swing setting returning [%s]",
+                    self._name,
+                    SWING_ON,
+                )
+                return SWING_ON
             elif (
                 self._fujitsu_device.af_vertical_swing["value"] == 1
                 and self._fujitsu_device.af_horizontal_swing["value"] == 0
             ):
-                return "vertical"
+                _LOGGER.debug(
+                    "FujitsuClimate device [%s] swing setting returning [%s]",
+                    self._name,
+                    SWING_VERTICAL,
+                )
+                return SWING_VERTICAL
             elif (
                 self._fujitsu_device.af_vertical_swing["value"] == 0
                 and self._fujitsu_device.af_horizontal_swing["value"] == 1
             ):
-                return "horizontal"
+                _LOGGER.debug(
+                    "FujitsuClimate device [%s] swing setting returning [%s]",
+                    self._name,
+                    SWING_HORIZONTAL,
+                )
+                return SWING_HORIZONTAL
             else:
-                return "off"
+                _LOGGER.debug(
+                    "FujitsuClimate device [%s] swing setting returning [%s]",
+                    self._name,
+                    SWING_OFF,
+                )
+                return SWING_OFF
 
     @property
     def swing_modes(self) -> list[Any]:
