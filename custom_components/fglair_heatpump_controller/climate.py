@@ -311,14 +311,14 @@ class FujitsuClimate(ClimateEntity):
             )
             return SWING_OFF
         else:
-            _LOGGER.debug(self._name)
             _LOGGER.debug(
-                "FujitsuClimate swing vertical settings: %s",
+                "FujitsuClimate device [%s] swing vertical settings: %s",
+                self._name,
                 self._fujitsu_device.af_vertical_swing["value"],
             )
-            _LOGGER.debug(self._name)
             _LOGGER.debug(
-                "FujitsuClimate swing horizontal settings: %s",
+                "FujitsuClimate device [%s] swing horizontal settings: %s",
+                self._name,
                 self._fujitsu_device.af_horizontal_swing["value"],
             )
 
