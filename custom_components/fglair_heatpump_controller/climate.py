@@ -378,33 +378,33 @@ class FujitsuClimate(ClimateEntity):
             swing_mode.upper(),
         )
         if swing_mode.upper() == "ON":
-            self._fujitsu_device.af_vertical_swing = 1
-            self._fujitsu_device.af_horizontal_swing = 1
             _LOGGER.debug(
                 "FujitsuClimate device [%s] swing choice valid: ON", self._name
             )
+            self._fujitsu_device.af_vertical_swing = 1
+            self._fujitsu_device.af_horizontal_swing = 1
         if swing_mode.upper() == "OFF":
-            self._fujitsu_device.af_vertical_swing = 0
-            self._fujitsu_device.af_horizontal_swing = 0
             _LOGGER.debug(
                 "FujitsuClimate device [%s] swing choice valid: OFF", self._name
             )
-        if swing_mode.upper() == "VERTICAL":
-            self._fujitsu_device.af_vertical_swing = 1
+            self._fujitsu_device.af_vertical_swing = 0
             self._fujitsu_device.af_horizontal_swing = 0
+        if swing_mode.upper() == "VERTICAL":
             _LOGGER.debug(
                 "FujitsuClimate device [%s] swing choice valid: VERTICAL", self._name
             )
+            self._fujitsu_device.af_vertical_swing = 1
+            self._fujitsu_device.af_horizontal_swing = 0
         if swing_mode.upper() == "HORIZONTAL":
-            self._fujitsu_device.af_vertical_swing = 0
-            self._fujitsu_device.af_horizontal_swing = 1
             _LOGGER.debug(
                 "FujitsuClimate device [%s] swing choice valid: HORIZONTAL", self._name
             )
+            self._fujitsu_device.af_vertical_swing = 0
+            self._fujitsu_device.af_horizontal_swing = 1
         # if swing_mode.upper() == 'BOTH':
+        #    _LOGGER.debug("FujitsuClimate device [%s] swing choice valid: BOTH",self._name)
         #    self._fujitsu_device.af_vertical_swing = 1
         #    self._fujitsu_device.af_horizontal_swing = 1
-        #    _LOGGER.debug("FujitsuClimate device [%s] swing choice valid: BOTH",self._name)
 
     @property
     def preset_mode(self) -> Any:
