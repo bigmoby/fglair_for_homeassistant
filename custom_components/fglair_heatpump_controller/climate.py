@@ -372,51 +372,69 @@ class FujitsuClimate(ClimateEntity):
 
     def set_swing_mode(self, swing_mode: Any) -> None:
         """Set new target swing."""
-        _LOGGER.debug(self._name)
-        _LOGGER.debug("FujitsuClimate swing choice: %s", swing_mode.upper())
+        _LOGGER.debug(
+            "FujitsuClimate device [%s] swing choice [%s]",
+            self._name,
+            swing_mode.upper(),
+        )
         if swing_mode.upper() == "ON":
             self._fujitsu_device.af_vertical_swing = 1
             self._fujitsu_device.af_horizontal_swing = 1
-            _LOGGER.debug(self._name)
-            _LOGGER.debug("FujitsuClimate swing choice valide: ON")
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] swing choice valid: ON", self._name
+            )
         if swing_mode.upper() == "OFF":
             self._fujitsu_device.af_vertical_swing = 0
             self._fujitsu_device.af_horizontal_swing = 0
-            _LOGGER.debug(self._name)
-            _LOGGER.debug("FujitsuClimate swing choice valide: OFF")
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] swing choice valid: OFF", self._name
+            )
         if swing_mode.upper() == "VERTICAL":
             self._fujitsu_device.af_vertical_swing = 1
             self._fujitsu_device.af_horizontal_swing = 0
-            _LOGGER.debug(self._name)
-            _LOGGER.debug("FujitsuClimate swing choice valide: VERTICAL")
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] swing choice valid: VERTICAL", self._name
+            )
         if swing_mode.upper() == "HORIZONTAL":
             self._fujitsu_device.af_vertical_swing = 0
             self._fujitsu_device.af_horizontal_swing = 1
-            _LOGGER.debug(self._name)
-            _LOGGER.debug("FujitsuClimate swing choice valide: HORIZONTAL")
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] swing choice valid: HORIZONTAL", self._name
+            )
         # if swing_mode.upper() == 'BOTH':
         #    self._fujitsu_device.af_vertical_swing = 1
         #    self._fujitsu_device.af_horizontal_swing = 1
-        #    _LOGGER.debug("FujitsuClimate swing choice valide: BOTH")
+        #    _LOGGER.debug("FujitsuClimate device [%s] swing choice valid: BOTH",self._name)
 
     @property
     def preset_mode(self) -> Any:
         """Return the preset setting."""
-        _LOGGER.debug(
-            "FujitsuClimate device [%s] preset eco setting: %s",
-            self._name,
-            self._fujitsu_device.economy_mode["value"],
-        )
-        _LOGGER.debug(
-            "FujitsuClimate device [%s] preset boost setting: %s",
-            self._name,
-            self._fujitsu_device.powerful_mode["value"],
-        )
-        if self._fujitsu_device.economy_mode["value"] == 1:
-            return PRESET_ECO
-        if self._fujitsu_device.powerful_mode["value"] == 1:
-            return PRESET_BOOST
-        return PRESET_NONE
+        if not self._fujitsu_device._get_prop_from_json(
+            "economy_mode", self._fujitsu_device._properties
+        ) or not self._fujitsu_device._get_prop_from_json(
+            "powerful_mode", self._fujitsu_device._properties
+        ):
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] has no preset props",
+                self._name,
+            )
+            return PRESET_NONE
+        else:
+            if self._fujitsu_device.economy_mode["value"] == 1:
+                _LOGGER.debug(
+                    "FujitsuClimate device [%s] preset eco setting: %s",
+                    self._name,
+                    self._fujitsu_device.economy_mode["value"],
+                )
+                return PRESET_ECO
+            if self._fujitsu_device.powerful_mode["value"] == 1:
+                _LOGGER.debug(
+                    "FujitsuClimate device [%s] preset boost setting: %s",
+                    self._name,
+                    self._fujitsu_device.powerful_mode["value"],
+                )
+                return PRESET_BOOST
+            return PRESET_NONE
 
     @property
     def preset_modes(self) -> list[Any]:
