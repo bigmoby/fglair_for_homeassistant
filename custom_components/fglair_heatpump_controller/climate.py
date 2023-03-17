@@ -39,10 +39,8 @@ from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from pyfujitsugeneral.api import Api as fgapi
 from pyfujitsugeneral.splitAC import SplitAC as splitAC
 
-__version__ = "0.2.0"
 
 _LOGGER = logging.getLogger(__name__)
-# _LOGGER.setLevel(logging.DEBUG)
 
 # Values from web interface
 MIN_TEMP = 16
@@ -82,6 +80,26 @@ DICT_FAN_MODE = {
     "High": FAN_HIGH,
     "Quiet": FAN_DIFFUSE,
 }
+
+FUJITSU_TO_HA_STATE = {
+    "off": HVACMode.OFF,
+    "auto": HVACMode.AUTO,
+    "cool": HVACMode.COOL,
+    "dry": HVACMode.DRY,
+    "fan_only": HVACMode.FAN_ONLY,
+    "heat": HVACMode.HEAT,
+}
+
+HA_STATE_TO_FUJITSU = {value: key for key, value in FUJITSU_TO_HA_STATE.items()}
+
+SUPPORTED_MODES: list[HVACMode] = [
+    HVACMode.OFF,
+    HVACMode.HEAT,
+    HVACMode.COOL,
+    HVACMode.AUTO,
+    HVACMode.DRY,
+    HVACMode.FAN_ONLY,
+]
 
 
 def setup_platform(
@@ -141,14 +159,7 @@ class FujitsuClimate(ClimateEntity):
             FAN_HIGH,
             FAN_DIFFUSE,
         ]
-        self._hvac_modes: list[HVACMode] = [
-            HVACMode.HEAT,
-            HVACMode.COOL,
-            HVACMode.AUTO,
-            HVACMode.DRY,
-            HVACMode.FAN_ONLY,
-            HVACMode.OFF,
-        ]
+        self._hvac_modes: list[HVACMode] = SUPPORTED_MODES
         self._swing_modes: list[Any] = [
             SWING_OFF,
             SWING_ON,
@@ -232,30 +243,43 @@ class FujitsuClimate(ClimateEntity):
             self._fujitsu_device.operation_mode["value"],
             self._fujitsu_device.operation_mode_desc,
         )
-        return self._fujitsu_device.operation_mode_desc
+        return FUJITSU_TO_HA_STATE[self._fujitsu_device.operation_mode_desc]
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
         """HVAC modes."""
+        _LOGGER.debug(
+            "FujitsuClimate device [%s] listing all supported hvac_modes [%s]",
+            self._name,
+            self._hvac_modes,
+        )
         return self._hvac_modes
 
     def set_hvac_mode(self, hvac_mode: HVACMode) -> None:
-        """Set HVAC mode."""
+        """Set new target hvac mode."""
         _LOGGER.debug(
-            "FujitsuClimate device [%s] set_hvac_mode called.current _hvac_mode [%s] ; new hvac_mode [%s]",
+            "FujitsuClimate device [%s] set_hvac_mode called. Current _hvac_mode [%s] ; new hvac_mode [%s]",
             self._name,
             self._hvac_mode,
             hvac_mode,
         )
+        if hvac_mode not in HA_STATE_TO_FUJITSU:
+            raise ValueError(
+                f"FujitsuClimate device [{self._name}] Unsupported HVAC mode: {hvac_mode}"
+            )
+
         if hvac_mode == HVACMode.OFF:
             """Turn device off."""
             self._fujitsu_device.turnOff()
-        elif self._hvac_mode != hvac_mode:
-            _LOGGER.debug(
-                "FujitsuClimate device [%s] set_hvac_mode elif path called. ",
-                self._name,
-            )
-            self._fujitsu_device.changeOperationMode(hvac_mode)
+
+        _LOGGER.debug(
+            "FujitsuClimate device [%s] set_hvac_mode called. Current mode [%s] new will be [%s]",
+            self._name,
+            self._hvac_mode,
+            hvac_mode,
+        )
+
+        self._fujitsu_device.changeOperationMode(HA_STATE_TO_FUJITSU.get(hvac_mode))
 
     def set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
