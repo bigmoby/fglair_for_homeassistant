@@ -1,7 +1,7 @@
 {
   "domain": "fglair_heatpump_controller",
   "name": "FGLair heat pump controller integration",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "documentation": "https://github.com/bigmoby/fglair_for_homeassistant/blob/main/README.md",
   "issue_tracker": "https://github.com/bigmoby/fglair_for_homeassistant/issues",
   "dependencies": [],
