@@ -215,6 +215,26 @@ class FujitsuClimate(ClimateEntity):
             )
             return float(converted_display_temperature)
 
+    def set_temperature(self, **kwargs: Any) -> None:
+        """Set new target temperature."""
+        if (target_temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] set_temperature [%s]",
+                self._name,
+                target_temperature,
+            )
+            rounded_temperature = self.round_off_temperature(target_temperature)
+            self._fujitsu_device.changeTemperature(rounded_temperature)
+        else:
+            _LOGGER.error(
+                "FujitsuClimate device [%s] A target temperature must be provided",
+                self._name,
+            )
+
+    def round_off_temperature(self, temperature: float) -> float:
+        """Round temperature to the closest half."""
+        return round(temperature * 2) / 2
+
     @property
     def target_temperature(self) -> float:
         """Return the temperature we try to reach."""
@@ -280,15 +300,6 @@ class FujitsuClimate(ClimateEntity):
         )
 
         self._fujitsu_device.changeOperationMode(HA_STATE_TO_FUJITSU.get(hvac_mode))
-
-    def set_temperature(self, **kwargs: Any) -> None:
-        """Set new target temperature."""
-        _LOGGER.debug(
-            "FujitsuClimate device [%s] set_temperature [%s]",
-            self._name,
-            kwargs.get(ATTR_TEMPERATURE),
-        )
-        self._fujitsu_device.changeTemperature(kwargs.get(ATTR_TEMPERATURE))
 
     def update(self) -> None:
         """Retrieve latest state."""
