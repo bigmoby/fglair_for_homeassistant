@@ -218,12 +218,13 @@ class FujitsuClimate(ClimateEntity):
     def set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
         if (target_temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
+            rounded_temperature = self.round_off_temperature(target_temperature)
             _LOGGER.debug(
-                "FujitsuClimate device [%s] set_temperature [%s]",
+                "FujitsuClimate device [%s] set_temperature [%s] will be rounded with [%s]",
                 self._name,
                 target_temperature,
+                rounded_temperature,
             )
-            rounded_temperature = self.round_off_temperature(target_temperature)
             self._fujitsu_device.changeTemperature(rounded_temperature)
         else:
             _LOGGER.error(
