@@ -46,7 +46,7 @@ _LOGGER = logging.getLogger(__name__)
 MIN_TEMP = 16
 MAX_TEMP = 30
 DEFAULT_TEMPERATURE_OFFSET: Final = 0.0
-DEFAULT_MIN_STEP: Final = 1.0
+DEFAULT_MIN_STEP: Final = 0.5
 DEFAULT_TOKEN_PATH = "token.txt"
 
 SUPPORT_FLAGS: Any = (
