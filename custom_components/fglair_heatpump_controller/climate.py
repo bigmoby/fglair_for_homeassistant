@@ -145,6 +145,7 @@ class FujitsuClimate(ClimateEntity):
         self._fujitsu_device = splitAC(self._dsn, self._api)
         _LOGGER.debug("FujitsuClimate instantiate splitAC")
         self._name = self.name
+        self._unique_id = self.unique_id
         self._aux_heat = self.is_aux_heat_on
         self._current_temperature = self.current_temperature
         self._target_temperature = self.target_temperature
@@ -201,7 +202,7 @@ class FujitsuClimate(ClimateEntity):
         if not curtemp:
             return None
         else:
-            if curtemp["value"] == 65535:
+            if curtemp["value"] >= 65530:
                 _LOGGER.debug("Display_temperature value not valid.")
                 return None
 
@@ -301,6 +302,16 @@ class FujitsuClimate(ClimateEntity):
         )
 
         self._fujitsu_device.changeOperationMode(HA_STATE_TO_FUJITSU.get(hvac_mode))
+
+    async def async_turn_on(self) -> None:
+        """Set the HVAC State to on."""
+        _LOGGER.debug("Turning on FujitsuClimate device [%s]", self._unique_id)
+        await self._fujitsu_device.turnOn()
+
+    async def async_turn_off(self) -> None:
+        """Set the HVAC State to off."""
+        _LOGGER.debug("Turning off FujitsuClimate device [%s]", self._unique_id)
+        await self._fujitsu_device.turnOff()
 
     def update(self) -> None:
         """Retrieve latest state."""
