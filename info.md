@@ -23,6 +23,6 @@ This is a platform to support Fujitsu General Airconditioners under Climate comp
 [releases]: https://github.com/bigmoby/fglair_for_homeassistant/releases
 [project-stage-shield]: https://img.shields.io/badge/project%20stage-production%20ready-brightgreen.svg
 [license-shield]: https://img.shields.io/github/license/bigmoby/fglair_for_homeassistant
-[maintenance-shield]: https://img.shields.io/maintenance/yes/2022.svg
+[maintenance-shield]: https://img.shields.io/maintenance/yes/2023.svg
 [commits-shield]: https://img.shields.io/github/commit-activity/y/bigmoby/fglair_for_homeassistant.svg
 [commits]: https://img.shields.io/github/commits/bigmoby/fglair_for_homeassistant

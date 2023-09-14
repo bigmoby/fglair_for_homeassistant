@@ -169,13 +169,11 @@ class FujitsuClimate(ClimateEntity):
         ]
         self._preset_modes: list[Any] = [PRESET_NONE, PRESET_ECO, PRESET_BOOST]
         self._on = self.is_on
-        """
         _LOGGER.debug(
             "FujitsuClimate finish init for device [%s] properties [%s]",
             self.name,
             self._fujitsu_device._properties,
         )
-        """
 
     @property
     def name(self) -> str:
