@@ -169,12 +169,13 @@ class FujitsuClimate(ClimateEntity):
         ]
         self._preset_modes: list[Any] = [PRESET_NONE, PRESET_ECO, PRESET_BOOST]
         self._on = self.is_on
-
+        """
         _LOGGER.debug(
             "FujitsuClimate finish init for device [%s] properties [%s]",
             self.name,
             self._fujitsu_device._properties,
         )
+        """
 
     @property
     def name(self) -> str:
@@ -303,15 +304,15 @@ class FujitsuClimate(ClimateEntity):
 
         self._fujitsu_device.changeOperationMode(HA_STATE_TO_FUJITSU.get(hvac_mode))
 
-    async def async_turn_on(self) -> None:
-        """Set the HVAC State to on."""
-        _LOGGER.debug("Turning on FujitsuClimate device [%s]", self._unique_id)
-        await self._fujitsu_device.turnOn()
+    def turn_on(self) -> None:
+        """Set the HVAC State to on by setting the operation mode to the last operation mode other than off"""
+        _LOGGER.debug("Turning on FujitsuClimate device [%s]", self._name)
+        self._fujitsu_device.turnOn()
 
-    async def async_turn_off(self) -> None:
+    def turn_off(self) -> None:
         """Set the HVAC State to off."""
-        _LOGGER.debug("Turning off FujitsuClimate device [%s]", self._unique_id)
-        await self._fujitsu_device.turnOff()
+        _LOGGER.debug("Turning off FujitsuClimate device [%s]", self._name)
+        self._fujitsu_device.turnOff()
 
     def update(self) -> None:
         """Retrieve latest state."""
