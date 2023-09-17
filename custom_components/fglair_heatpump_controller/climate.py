@@ -65,6 +65,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional("temperature_offset", default=DEFAULT_TEMPERATURE_OFFSET): vol.All(
             vol.Coerce(float), vol.Range(min=-5, max=5)
         ),
+        vol.Optional("alt_heat", default=False): cv.boolean,
     }
 )
 
@@ -117,6 +118,7 @@ def setup_platform(
     region = config.get("region")
     tokenpath = config.get("tokenpath", DEFAULT_TOKEN_PATH)
     temperature_offset = config.get("temperature_offset", DEFAULT_TEMPERATURE_OFFSET)
+    alt_heat = region = config.get("alt_heat")
 
     fglairapi = fgapi(username, password, region, tokenpath)
 
@@ -134,7 +136,7 @@ class FujitsuClimate(ClimateEntity):
     """Representation of a Fujitsu HVAC device."""
 
     def __init__(
-        self, api: fgapi, dsn: str, region: str, temperature_offset: float
+        self, api: fgapi, dsn: str, region: str, temperature_offset: float, alt_heat: bool
     ) -> None:
         """Initialize the thermostat."""
         _LOGGER.debug("FujitsuClimate init called for dsn: %s", dsn)
@@ -142,6 +144,7 @@ class FujitsuClimate(ClimateEntity):
         self._dsn = dsn
         self._region = region
         self._temperature_offset = temperature_offset
+        self._alt_heat = alt_heat
         self._fujitsu_device = splitAC(self._dsn, self._api)
         _LOGGER.debug("FujitsuClimate instantiate splitAC")
         self._name = self.name
@@ -292,6 +295,10 @@ class FujitsuClimate(ClimateEntity):
         if hvac_mode == HVACMode.OFF:
             """Turn device off."""
             self._fujitsu_device.turnOff()
+        elif hvac_mode == HVACMode.HEAT and self._alt_heat:
+            self._fujitsu_device.changeOperationMode("heat_alt")
+        else:
+            self._fujitsu_device.changeOperationMode(HA_STATE_TO_FUJITSU.get(hvac_mode))
 
         _LOGGER.debug(
             "FujitsuClimate device [%s] set_hvac_mode called. Current mode [%s] new will be [%s]",
@@ -299,8 +306,6 @@ class FujitsuClimate(ClimateEntity):
             self._hvac_mode,
             hvac_mode,
         )
-
-        self._fujitsu_device.changeOperationMode(HA_STATE_TO_FUJITSU.get(hvac_mode))
 
     def turn_on(self) -> None:
         """Set the HVAC State to on by setting the operation mode to the last operation mode other than off"""
