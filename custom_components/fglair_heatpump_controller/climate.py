@@ -161,11 +161,11 @@ class FujitsuClimate(ClimateEntity):
         self._swing_modes: list[str] = self._fujitsu_device.vane_vertical_positions()
         self._preset_modes: list[Any] = [PRESET_NONE, PRESET_ECO, PRESET_BOOST]
         self._on = self.is_on
-        _LOGGER.debug(
+        """_LOGGER.debug(
             "FujitsuClimate finish init for device [%s] properties [%s]",
             self.name,
             self._fujitsu_device._properties,
-        )
+        )"""
 
     @property
     def name(self) -> str:
@@ -229,12 +229,9 @@ class FujitsuClimate(ClimateEntity):
         return round(temperature * 2) / 2
 
     @property
-    def target_temperature(self) -> float | None:
+    def target_temperature(self) -> float:
         """Return the temperature we try to reach."""
         data: float = self._fujitsu_device.adjust_temperature_degree
-        if data == 6553.5:
-            _LOGGER.error("target_temperature value not valid.")
-            return None
         return data
 
     @property
@@ -341,7 +338,7 @@ class FujitsuClimate(ClimateEntity):
     @property
     def swing_mode(self) -> str:
         """Return the swing setting."""
-        vaneVerticalValue = self._fujitsu_device.vane_vertical
+        vaneVerticalValue = self._fujitsu_device.vane_vertical()
         _LOGGER.debug(
             "FujitsuClimate device [%s] vane value [%s]",
             self._name,
@@ -350,7 +347,7 @@ class FujitsuClimate(ClimateEntity):
         return vaneVerticalValue
 
     @property
-    def swing_modes(self) -> list[Any]:
+    def swing_modes(self) -> list[str]:
         """List of available swing modes."""
         _LOGGER.debug(
             "FujitsuClimate device [%s] returning swing modes [%s]",
