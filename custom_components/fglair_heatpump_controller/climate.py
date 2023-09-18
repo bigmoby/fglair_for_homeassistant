@@ -116,7 +116,7 @@ def setup_platform(
     temperature_offset = config.get("temperature_offset", DEFAULT_TEMPERATURE_OFFSET)
     alt_heat = region = config.get("alt_heat")
 
-    fglairapi = fgapi(username, password, region, tokenpath)
+    fglairapi = fgapi(username, password, region, tokenpath, alt_heat)
 
     if not fglairapi._authenticate():
         _LOGGER.error("Unable to authenticate with Fujistsu General")
