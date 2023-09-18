@@ -44,6 +44,7 @@ MAX_TEMP = 30
 DEFAULT_TEMPERATURE_OFFSET: Final = 0.0
 DEFAULT_MIN_STEP: Final = 0.5
 DEFAULT_TOKEN_PATH = "token.txt"
+DEFAULT_ALT_HEAT = False
 
 SUPPORT_FLAGS: Any = (
     SUPPORT_FAN_MODE
@@ -61,7 +62,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional("temperature_offset", default=DEFAULT_TEMPERATURE_OFFSET): vol.All(
             vol.Coerce(float), vol.Range(min=-5, max=5)
         ),
-        vol.Optional("alt_heat", default=False): cv.boolean,
+        vol.Optional("alt_heat", default=DEFAULT_ALT_HEAT): cv.boolean,
     }
 )
 
@@ -114,7 +115,7 @@ def setup_platform(
     region = config.get("region")
     tokenpath = config.get("tokenpath", DEFAULT_TOKEN_PATH)
     temperature_offset = config.get("temperature_offset", DEFAULT_TEMPERATURE_OFFSET)
-    alt_heat = region = config.get("alt_heat")
+    alt_heat = config.get("alt_heat")
 
     fglairapi = fgapi(username, password, region, tokenpath)
 
@@ -124,7 +125,8 @@ def setup_platform(
 
     devices = fglairapi.get_devices_dsn()
     add_entities(
-        FujitsuClimate(fglairapi, dsn, region, temperature_offset, alt_heat) for dsn in devices
+        FujitsuClimate(fglairapi, dsn, region, temperature_offset, alt_heat)
+        for dsn in devices
     )
 
 
@@ -132,7 +134,12 @@ class FujitsuClimate(ClimateEntity):
     """Representation of a Fujitsu HVAC device."""
 
     def __init__(
-        self, api: fgapi, dsn: str, region: str, temperature_offset: float, alt_heat: bool
+        self,
+        api: fgapi,
+        dsn: str,
+        region: str,
+        temperature_offset: float,
+        alt_heat: bool,
     ) -> None:
         """Initialize the thermostat."""
         _LOGGER.debug("FujitsuClimate init called for dsn: %s", dsn)
