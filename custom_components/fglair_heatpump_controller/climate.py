@@ -124,7 +124,7 @@ def setup_platform(
 
     devices = fglairapi.get_devices_dsn()
     add_entities(
-        FujitsuClimate(fglairapi, dsn, region, temperature_offset) for dsn in devices
+        FujitsuClimate(fglairapi, dsn, region, temperature_offset, alt_heat) for dsn in devices
     )
 
 
