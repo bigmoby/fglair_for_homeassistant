@@ -51,6 +51,7 @@ climate:
      region: ['eu' | 'cn' | 'us'] (optional, default: 'us')
      tokenpath: (optional, default: 'token.txt')
      temperature_offset: (optional, default: 0)
+     alt_heat: (optional, default: false)
 ```
 
 Full Example:
@@ -62,7 +63,9 @@ climate:
     region: 'eu'
     tokenpath: 'token.txt'
     temperature_offset: -2.0
+    alt_heat: true
 ```
+If your unit does not switch to Heat mode try setting `alt_heat` to `true`. This is required for ASTG models and maybe others.
 
 4. Restart Home Assistant in order for the new component to show and all of your A/Cs in your account should appear in HASS.
 
