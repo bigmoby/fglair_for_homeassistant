@@ -1,11 +1,11 @@
 {
   "domain": "fglair_heatpump_controller",
   "name": "FGLair heat pump controller integration",
-  "version": "0.3.0",
+  "version": "0.2.9",
   "documentation": "https://github.com/bigmoby/fglair_for_homeassistant/blob/main/README.md",
   "issue_tracker": "https://github.com/bigmoby/fglair_for_homeassistant/issues",
   "dependencies": [],
   "codeowners": ["@bigmoby" ,"@Mmodarre", "@xerxes87"],
-  "requirements": ["pyfujitsugeneral>=1.0.5"],
+  "requirements": ["pyfujitsugeneral==1.0.5"],
   "iot_class": "cloud_polling"
 }
