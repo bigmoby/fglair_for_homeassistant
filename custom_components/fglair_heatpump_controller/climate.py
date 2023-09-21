@@ -391,7 +391,7 @@ class FujitsuClimate(ClimateEntity):
         if swing_mode == VERTICAL + SWING:
             self._fujitsu_device.af_vertical_swing = 1
         else:
-            self._fujitsu_device.set_vane_vertical_position(swing_mode[-1])
+            self._fujitsu_device.set_vane_vertical_position(int(swing_mode[-1]))
         _LOGGER.debug(
             "FujitsuClimate device [%s] swing choice [%s]",
             self._name,
