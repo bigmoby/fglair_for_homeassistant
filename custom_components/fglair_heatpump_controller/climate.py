@@ -356,8 +356,10 @@ class FujitsuClimate(ClimateEntity):
         swingVerticalValue = self._fujitsu_device.af_vertical_swing
         if swingVerticalValue == 1:
             mode = self.swing_modes[0]
-        else:
+        elif self._swing_modes[0] == VERTICAL + SWING:
             mode = self.swing_modes[vaneVerticalValue]
+        else:
+            mode = self.swing_modes[vaneVerticalValue-1]
         _LOGGER.debug(
             "FujitsuClimate device [%s] vane value [%s]",
             self._name,
