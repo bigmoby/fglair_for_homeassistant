@@ -374,7 +374,6 @@ class FujitsuClimate(ClimateEntity):
         pos_list: list[str] = self._fujitsu_device.vane_vertical_positions()
 
         # Add swing mode to start of list if supported
-        modes_list = self._fujitsu_device.swing_modes()
         if modes_list in ["Vertical", "Both"]:
             pos_list = [SWING] + pos_list
         
