@@ -378,7 +378,7 @@ class FujitsuClimate(ClimateEntity):
         if modes_list in ["Vertical", "Both"]:
             pos_list = [SWING] + pos_list
         
-        self._swing_modes = [VERTICAL + itm for itm in pos_list]
+        self._swing_modes = [VERTICAL + str(itm) for itm in pos_list]
         _LOGGER.debug(
             "FujitsuClimate device [%s] returning swing modes [%s]",
             self._name,
