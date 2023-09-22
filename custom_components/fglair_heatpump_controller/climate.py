@@ -45,7 +45,7 @@ DEFAULT_TEMPERATURE_OFFSET: Final = 0.0
 DEFAULT_MIN_STEP: Final = 0.5
 DEFAULT_TOKEN_PATH = "token.txt"
 DEFAULT_ALT_HEAT = False
-VERTICAL = "vertical_"
+VERTICAL = "Vertical_"
 SWING = "swing"
 
 SUPPORT_FLAGS: Any = (
@@ -160,8 +160,8 @@ class FujitsuClimate(ClimateEntity):
         self._target_temperature = self.target_temperature
         self._fan_mode = self.fan_mode
         self._hvac_mode = self.hvac_mode
-        self._swing_mode = self.swing_mode
         self._swing_modes = self.swing_modes
+        self._swing_mode = self.swing_mode
 
         self._fan_modes: list[Any] = [
             FAN_AUTO,
