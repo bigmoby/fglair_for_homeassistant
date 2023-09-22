@@ -353,7 +353,7 @@ class FujitsuClimate(ClimateEntity):
     def swing_mode(self) -> str:
         """Return the swing setting."""
         vaneVerticalValue = self._fujitsu_device.vane_vertical()
-        swingVerticalValue = self._fujitsu_device.af_vertical_swing
+        swingVerticalValue = self._fujitsu_device.af_vertical_swing["value"]
         if swingVerticalValue == 1:
             mode = self.swing_modes[0]
         elif self._swing_modes[0] == VERTICAL + SWING:
