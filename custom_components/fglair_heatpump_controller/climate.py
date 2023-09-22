@@ -45,8 +45,6 @@ DEFAULT_TEMPERATURE_OFFSET: Final = 0.0
 DEFAULT_MIN_STEP: Final = 0.5
 DEFAULT_TOKEN_PATH = "token.txt"
 DEFAULT_ALT_HEAT = False
-VERTICAL = "Vertical_"
-SWING = "swing"
 
 SUPPORT_FLAGS: Any = (
     SUPPORT_FAN_MODE
@@ -160,7 +158,6 @@ class FujitsuClimate(ClimateEntity):
         self._target_temperature = self.target_temperature
         self._fan_mode = self.fan_mode
         self._hvac_mode = self.hvac_mode
-        self._swing_modes = self.swing_modes
         self._swing_mode = self.swing_mode
 
         self._fan_modes: list[Any] = [
@@ -171,6 +168,7 @@ class FujitsuClimate(ClimateEntity):
             FAN_DIFFUSE,
         ]
         self._hvac_modes: list[HVACMode] = SUPPORTED_MODES
+        self._swing_modes: list[str] = self._fujitsu_device.vane_vertical_positions()
         self._preset_modes: list[Any] = [PRESET_NONE, PRESET_ECO, PRESET_BOOST]
         self._on = self.is_on
         """_LOGGER.debug(
@@ -353,31 +351,16 @@ class FujitsuClimate(ClimateEntity):
     def swing_mode(self) -> str:
         """Return the swing setting."""
         vaneVerticalValue = self._fujitsu_device.vane_vertical()
-        swingVerticalValue = self._fujitsu_device.af_vertical_swing["value"]
-        if swingVerticalValue == 1:
-            mode = self.swing_modes[0]
-        elif self._swing_modes[0] == VERTICAL + SWING:
-            mode = self.swing_modes[vaneVerticalValue]
-        else:
-            mode = self.swing_modes[vaneVerticalValue-1]
         _LOGGER.debug(
             "FujitsuClimate device [%s] vane value [%s]",
             self._name,
-            mode,
+            vaneVerticalValue,
         )
-        return mode
+        return vaneVerticalValue
 
     @property
     def swing_modes(self) -> list[str]:
         """List of available swing modes."""
-        # Currently only vertical modes supported
-        pos_list: list[str] = self._fujitsu_device.vane_vertical_positions()
-
-        # Add swing mode to start of list if supported
-        if modes_list in ["Vertical", "Both"]:
-            pos_list = [SWING] + pos_list
-        
-        self._swing_modes = [VERTICAL + str(itm) for itm in pos_list]
         _LOGGER.debug(
             "FujitsuClimate device [%s] returning swing modes [%s]",
             self._name,
@@ -387,15 +370,12 @@ class FujitsuClimate(ClimateEntity):
 
     def set_swing_mode(self, swing_mode: Any) -> None:
         """Set new target swing."""
-        if swing_mode == VERTICAL + SWING:
-            self._fujitsu_device.af_vertical_swing = 1
-        else:
-            self._fujitsu_device.set_vane_vertical_position(int(swing_mode[-1]))
         _LOGGER.debug(
             "FujitsuClimate device [%s] swing choice [%s]",
             self._name,
             swing_mode,
         )
+        self._fujitsu_device.changeSwingMode(swing_mode)
 
     @property
     def preset_mode(self) -> Any:
