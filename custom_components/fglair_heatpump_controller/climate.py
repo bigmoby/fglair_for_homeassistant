@@ -162,8 +162,6 @@ class FujitsuClimate(ClimateEntity):
         self._hvac_mode = self.hvac_mode
         self._swing_modes = self.swing_modes
         self._swing_mode = self.swing_mode
-        
-
         self._fan_modes: list[Any] = [
             FAN_AUTO,
             FAN_LOW,
@@ -365,7 +363,7 @@ class FujitsuClimate(ClimateEntity):
         elif self._swing_modes[0] == VERTICAL + SWING:
             mode = self.swing_modes[vaneVerticalValue]
         else:
-            mode = self.swing_modes[vaneVerticalValue-1]
+            mode = self.swing_modes[vaneVerticalValue - 1]
         _LOGGER.debug(
             "FujitsuClimate device [%s] vane value [%s]",
             self._name,
@@ -383,7 +381,7 @@ class FujitsuClimate(ClimateEntity):
         modes_list = self._fujitsu_device.get_swing_modes_supported()
         if modes_list in ["Vertical", "Both"]:
             pos_list = [SWING] + pos_list
-        
+
         self._swing_modes = [VERTICAL + str(itm) for itm in pos_list]
         _LOGGER.debug(
             "FujitsuClimate device [%s] returning swing modes [%s]",

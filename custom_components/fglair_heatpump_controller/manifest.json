@@ -6,6 +6,6 @@
   "issue_tracker": "https://github.com/bigmoby/fglair_for_homeassistant/issues",
   "dependencies": [],
   "codeowners": ["@bigmoby" ,"@Mmodarre", "@xerxes87"],
-  "requirements": ["pyfujitsugeneral==1.0.11"],
+  "requirements": ["pyfujitsugeneral==1.0.12"],
   "iot_class": "cloud_polling"
 }
