@@ -44,7 +44,6 @@ MAX_TEMP = 30
 DEFAULT_TEMPERATURE_OFFSET: Final = 0.0
 DEFAULT_MIN_STEP: Final = 0.5
 DEFAULT_TOKEN_PATH = "token.txt"
-DEFAULT_ALT_HEAT = False
 VERTICAL = "Vertical_"
 SWING = "swing"
 
@@ -64,7 +63,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional("temperature_offset", default=DEFAULT_TEMPERATURE_OFFSET): vol.All(
             vol.Coerce(float), vol.Range(min=-5, max=5)
         ),
-        vol.Optional("alt_heat", default=DEFAULT_ALT_HEAT): cv.boolean,
     }
 )
 
@@ -117,7 +115,6 @@ def setup_platform(
     region = config.get("region")
     tokenpath = config.get("tokenpath", DEFAULT_TOKEN_PATH)
     temperature_offset = config.get("temperature_offset", DEFAULT_TEMPERATURE_OFFSET)
-    alt_heat = config.get("alt_heat")
 
     fglairapi = fgapi(username, password, region, tokenpath)
 
@@ -127,8 +124,7 @@ def setup_platform(
 
     devices = fglairapi.get_devices_dsn()
     add_entities(
-        FujitsuClimate(fglairapi, dsn, region, temperature_offset, alt_heat)
-        for dsn in devices
+        FujitsuClimate(fglairapi, dsn, region, temperature_offset) for dsn in devices
     )
 
 
@@ -141,7 +137,6 @@ class FujitsuClimate(ClimateEntity):
         dsn: str,
         region: str,
         temperature_offset: float,
-        alt_heat: bool,
     ) -> None:
         """Initialize the thermostat."""
         _LOGGER.debug("FujitsuClimate init called for dsn: %s", dsn)
@@ -149,7 +144,6 @@ class FujitsuClimate(ClimateEntity):
         self._dsn = dsn
         self._region = region
         self._temperature_offset = temperature_offset
-        self._alt_heat = alt_heat
         self._fujitsu_device = splitAC(self._dsn, self._api)
 
         _LOGGER.debug("FujitsuClimate instantiate splitAC")
@@ -295,8 +289,6 @@ class FujitsuClimate(ClimateEntity):
         if hvac_mode == HVACMode.OFF:
             """Turn device off."""
             self._fujitsu_device.turnOff()
-        elif hvac_mode == HVACMode.HEAT and self._alt_heat:
-            self._fujitsu_device.changeOperationMode("heat_alt")
         else:
             self._fujitsu_device.changeOperationMode(HA_STATE_TO_FUJITSU.get(hvac_mode))
 
