@@ -384,7 +384,7 @@ class FujitsuClimate(ClimateEntity):
         return self._swing_mode
 
     @property
-    def swing_modes(self) -> list[str]:
+    def swing_modes(self) -> list[str] | None:
         """List of available swing modes."""
 
         vert_pos_list: list[str] = self._fujitsu_device.vane_vertical_positions()
@@ -393,17 +393,17 @@ class FujitsuClimate(ClimateEntity):
 
         # Add swing modes to start of list if supported
         modes_list = self._fujitsu_device.get_swing_modes_supported()
-        if modes_list == "Both":
-            pos_list = [SWING_VERTICAL] + pos_list
-            pos_list = [SWING_HORIZONTAL] + pos_list
-            pos_list = [SWING_BOTH] + pos_list
+        if modes_list == "Both" and pos_list is not None:
+            pos_list.append(SWING_VERTICAL)
+            pos_list.append(SWING_HORIZONTAL)
+            pos_list.append(SWING_BOTH)
             pos_list = pos_list + [VERTICAL + str(itm) for itm in vert_pos_list]
             pos_list = pos_list + [HORIZONTAL + str(itm) for itm in hori_pos_list]
-        elif modes_list == "Vertical":
-            pos_list = [SWING_VERTICAL] + pos_list
+        elif modes_list == "Vertical" and pos_list is not None:
+            pos_list.append(SWING_VERTICAL)
             pos_list = pos_list + [VERTICAL + str(itm) for itm in vert_pos_list]
-        elif modes_list == "Horizontal":
-            pos_list = [SWING_HORIZONTAL] + pos_list
+        elif modes_list == "Horizontal" and pos_list is not None:
+            pos_list.append(SWING_HORIZONTAL)
             pos_list = pos_list + [HORIZONTAL + str(itm) for itm in hori_pos_list]
         else:
             pos_list = None
