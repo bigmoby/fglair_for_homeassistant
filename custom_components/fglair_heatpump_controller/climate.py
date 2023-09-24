@@ -364,8 +364,10 @@ class FujitsuClimate(ClimateEntity):
         else:
             mode = VERTICAL + str(vaneVerticalValue)
 
+        self._swing_mode = mode
+
         _LOGGER.debug(
-            "FujitsuClimate device [%s] vertical vane value [%s]",
+            "FujitsuClimate device [%s] mode value [%s]",
             self._name,
             mode,
         )
@@ -379,7 +381,7 @@ class FujitsuClimate(ClimateEntity):
             self._name,
             swingHorizontalValue,
         )
-        return mode
+        return self._swing_mode
 
     @property
     def swing_modes(self) -> list[str]:
