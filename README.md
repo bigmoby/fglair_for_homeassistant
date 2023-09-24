@@ -66,6 +66,8 @@ climate:
 
 1. Restart Home Assistant in order for the new component to show and all of your A/Cs in your account should appear in HASS.
 
+Note for A/C units with horizontal swing support, the horizontal swing and position can be changed but only the vertical position will be shown due to limitations with Home Assistant's climate entity. 
+
 ## Known issues and missing features:
 
 - [X] Logging needs to be implemented
