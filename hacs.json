@@ -1,6 +1,6 @@
 {
-  "name": "FGLair Home Assistant Integration",
-  "iot_class": "Cloud Polling",
-  "render_readme": false,
-  "homeassistant": "2023.9.2"
+    "name": "FGLair Home Assistant Integration",
+    "iot_class": "Cloud Polling",
+    "render_readme": false,
+    "homeassistant": "2023.9.2"
 }
