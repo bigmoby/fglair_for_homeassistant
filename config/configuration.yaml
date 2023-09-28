@@ -10,8 +10,8 @@ logger:
 
 climate:
   - platform: fglair_heatpump_controller
-    username: #!secret FGLAIR_USER
-    password: #!secret FGLAIR_PASS
-    region: 'eu'
-    tokenpath: 'token.txt'
+    username: !secret FGLAIR_USER
+    password: !secret FGLAIR_PASS
+    region: "eu"
+    tokenpath: "token.txt"
     temperature_offset: 2
