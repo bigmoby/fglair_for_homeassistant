@@ -7,6 +7,7 @@ import asyncio
 from async_timeout import timeout
 from typing import Any, Final
 import voluptuous as vol
+from asyncinit import asyncinit
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.exceptions import ConfigEntryNotReady
@@ -140,16 +141,17 @@ async def async_setup_platform(
 
     for dsn in devices:
         entities.append(
-            FujitsuClimate(fglairapi, dsn, region, temperature_offset, _hass)
+            await FujitsuClimate(fglairapi, dsn, region, temperature_offset, _hass)
         )
 
     async_add_entities(entities, update_before_add=True)
 
 
+@asyncinit
 class FujitsuClimate(ClimateEntity):
     """Representation of a Fujitsu HVAC device."""
 
-    def __init__(
+    async def __init__(
         self,
         api: fgapi,
         dsn: str,
@@ -164,7 +166,10 @@ class FujitsuClimate(ClimateEntity):
         self._region = region
         self._temperature_offset = temperature_offset
         self._hass = hass
-        self._fujitsu_device = splitAC(self._dsn, self._api)
+
+        self._fujitsu_device = await hass.async_add_executor_job(
+            splitAC, self._dsn, self._api
+        )
 
         _LOGGER.debug("FujitsuClimate instantiate splitAC")
         self._name = self.name
