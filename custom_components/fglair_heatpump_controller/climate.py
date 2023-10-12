@@ -3,14 +3,15 @@ Support for the Fujitsu General Split A/C Wifi platform AKA FGLair .
 """
 
 import logging
-import asyncio
-from async_timeout import timeout
+
+
 from typing import Any, Final
 import voluptuous as vol
-from asyncinit import asyncinit
 
+from homeassistant.config_entries import ConfigEntry
 import homeassistant.helpers.config_validation as cv
-from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.components.climate import PLATFORM_SCHEMA, ClimateEntity
 from homeassistant.components.climate.const import (
     FAN_AUTO,
@@ -34,26 +35,31 @@ from homeassistant.const import (
     ATTR_TEMPERATURE,
     CONF_PASSWORD,
     CONF_USERNAME,
+    CONF_REGION,
     UnitOfTemperature,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
-from pyfujitsugeneral.api import Api as fgapi
-from pyfujitsugeneral.splitAC import SplitAC as splitAC
+
+from .const import (
+    DOMAIN,
+    CONF_TEMPERATURE_OFFSET,
+    CONF_TOKENPATH,
+    DEFAULT_TOKEN_PATH,
+    DEFAULT_TEMPERATURE_OFFSET,
+    DEFAULT_MIN_STEP,
+    VERTICAL,
+    HORIZONTAL,
+    MIN_TEMP,
+    MAX_TEMP,
+)
+from . import FglairDataUpdateCoordinator
+from .client import FGLairApiClient
+from .splitac import get_prop_from_json, SplitAC
 
 
 _LOGGER = logging.getLogger(__name__)
 
-# Values from web interface
-MIN_TEMP = 16
-MAX_TEMP = 30
-DEFAULT_TEMPERATURE_OFFSET: Final = 0.0
-DEFAULT_MIN_STEP: Final = 0.5
-DEFAULT_TOKEN_PATH = "token.txt"
-VERTICAL = "Vertical_"
-HORIZONTAL = "Horizontal_"
-SWING = "swing"
 
 SUPPORT_FLAGS: Any = (
     SUPPORT_FAN_MODE
@@ -108,79 +114,99 @@ SUPPORTED_MODES: list[HVACMode] = [
 ]
 
 
-async def async_setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-    """Setup the FujitsuClimate Platform."""
+    """Setup the FujitsuClimate Platform based on a config entry."""
+    _LOGGER.debug("FujitsuClimate async_setup_entry called")
 
-    _LOGGER.debug("FujitsuClimate setup_platform called")
+    coordinator: FglairDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    username = config.get(CONF_USERNAME)
-    password = config.get(CONF_PASSWORD)
-    region = config.get("region")
-    tokenpath = config.get("tokenpath", DEFAULT_TOKEN_PATH)
-    temperature_offset = config.get("temperature_offset", DEFAULT_TEMPERATURE_OFFSET)
+    username: str = entry.data[CONF_USERNAME]
+    password: str = entry.data[CONF_PASSWORD]
+    region: str = entry.data[CONF_REGION]
+    # tokenpath: str = entry.data[CONF_TOKENPATH, DEFAULT_TOKEN_PATH] TODO
+    # temperature_offset: str = entry.data[CONF_TEMPERATURE_OFFSET, DEFAULT_TEMPERATURE_OFFSET] TODO
+    tokenpath: str = entry.data[CONF_TOKENPATH]
+    temperature_offset: float = entry.data[CONF_TEMPERATURE_OFFSET]
 
-    fglairapi: fgapi = await hass.async_add_executor_job(
-        fgapi, username, password, region, tokenpath
+    _LOGGER.debug("=============>>>>>>>>>>>>>>>>>> ECCOMI tokenpath")
+    _LOGGER.debug(tokenpath)
+    _LOGGER.debug("=============>>>>>>>>>>>>>>>>>> ECCOMI temperature_offset")
+    _LOGGER.debug(temperature_offset)
+
+    fglair_api_client: FGLairApiClient = FGLairApiClient(
+        username, password, region, tokenpath, async_get_clientsession(hass)
     )
 
-    auth_result = await hass.async_add_executor_job(fglairapi._authenticate)
+    auth_result = await fglair_api_client.async_authenticate()
 
     if not auth_result:
         _LOGGER.error("Unable to authenticate with Fujistsu General")
         return
 
-    devices = await hass.async_add_executor_job(fglairapi.get_devices_dsn)
-    _hass = hass
+    devices = await fglair_api_client.async_get_devices_dsn()
 
     entities = []
 
     for dsn in devices:
+        _LOGGER.debug(
+            "=======>>>>>>> CHIAMANDO FujitsuClimate con %s - %s - %s - %s  ",
+            dsn,
+            region,
+            tokenpath,
+            temperature_offset,
+        )
         entities.append(
-            await FujitsuClimate(fglairapi, dsn, region, temperature_offset, _hass)
+            FujitsuClimate(
+                fglair_api_client,
+                dsn,
+                region,
+                tokenpath,
+                temperature_offset,
+                hass,
+                coordinator,
+            )
         )
 
     async_add_entities(entities, update_before_add=True)
 
 
-@asyncinit
-class FujitsuClimate(ClimateEntity):
+class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEntity):
     """Representation of a Fujitsu HVAC device."""
 
-    async def __init__(
+    def __init__(
         self,
-        api: fgapi,
+        fglair_api_client: FGLairApiClient,
         dsn: str,
         region: str,
+        tokenpath: str,
         temperature_offset: float,
         hass: HomeAssistant,
+        coordinator: FglairDataUpdateCoordinator,
     ) -> None:
         """Initialize the thermostat."""
         _LOGGER.debug("FujitsuClimate init called for dsn: %s", dsn)
-        self._api = api
+        super().__init__(coordinator)
+        self._fglairapi_client = fglair_api_client
         self._dsn = dsn
         self._region = region
         self._temperature_offset = temperature_offset
+        self._tokenpath = tokenpath
         self._hass = hass
-
-        self._fujitsu_device = await hass.async_add_executor_job(
-            splitAC, self._dsn, self._api
+        self._fujitsu_device = SplitAC(
+            self._dsn, self._fglairapi_client, tokenpath, temperature_offset
         )
-
-        _LOGGER.debug("FujitsuClimate instantiate splitAC")
-        self._name = self.name
-        self._unique_id = self.unique_id
-        self._aux_heat = self.is_aux_heat_on
-        self._current_temperature = self.current_temperature
-        self._target_temperature = self.target_temperature
-        self._fan_mode = self.fan_mode
-        self._hvac_mode = self.hvac_mode
-        self._swing_modes = self.swing_modes
-        self._swing_mode = self.swing_mode
+        self._properties = None
+        self._name = ""
+        self._unique_id: str = ""
+        self._aux_heat: bool = False
+        self._current_temperature: float | None = None
+        self._target_temperature: float | None = None
+        self._fan_mode = None
+        self._hvac_mode = None
+        self._swing_modes: list[str] | None = None
+        self._swing_mode: str = ""
         self._fan_modes: list[Any] = [
             FAN_AUTO,
             FAN_LOW,
@@ -190,26 +216,31 @@ class FujitsuClimate(ClimateEntity):
         ]
         self._hvac_modes: list[HVACMode] = SUPPORTED_MODES
         self._preset_modes: list[Any] = [PRESET_NONE, PRESET_ECO, PRESET_BOOST]
-        self._on = self.is_on
-        """_LOGGER.debug(
-            "FujitsuClimate finish init for device [%s] properties [%s]",
-            self.name,
-            self._fujitsu_device._properties,
-        )"""
+        self._on: bool | None = None
+
+    @callback
+    def _handle_coordinator_update(self) -> None:
+        """Update attributes when the coordinator updates."""
+        super()._handle_coordinator_update()
+
+    async def async_added_to_hass(self) -> None:
+        """When entity is added to hass."""
+        await super().async_added_to_hass()
+        self._handle_coordinator_update()
 
     @property
     def name(self) -> str:
         """Return the name of the thermostat."""
-        data: str = self._fujitsu_device.device_name["value"]
+        data: str = self._fujitsu_device.get_device_name()["value"]
         _LOGGER.debug("FujitsuClimate return device name [%s]", data)
         return data
 
     @property
     def is_aux_heat_on(self) -> bool:
         """Reusing is for Powerfull mode."""
-        if not hasattr(self._fujitsu_device.powerful_mode, "value"):
+        if not hasattr(self._fujitsu_device.get_powerful_mode(), "value"):
             return False
-        elif self._fujitsu_device.powerful_mode["value"] == 1:
+        elif self._fujitsu_device.get_powerful_mode()["value"] == 1:
             return True
         else:
             return False
@@ -217,8 +248,8 @@ class FujitsuClimate(ClimateEntity):
     @property
     def current_temperature(self) -> float | None:
         """Return the current temperature in degrees Celsius."""
-        curtemp = self._fujitsu_device._get_prop_from_json(
-            "display_temperature", self._fujitsu_device._properties
+        curtemp = get_prop_from_json(
+            "display_temperature", self._fujitsu_device.get_properties()
         )
         if not curtemp:
             return None
@@ -226,11 +257,10 @@ class FujitsuClimate(ClimateEntity):
             if curtemp["value"] == 65535:
                 _LOGGER.error("Display_temperature value not valid.")
                 return None
-
             converted_display_temperature = round(
                 ((curtemp["value"] / 100 - 32) * 5 / 9) + self._temperature_offset, 1
             )
-            _LOGGER.debug(
+            _LOGGER.warning(
                 "FujitsuClimate device [%s] return display_temperature [%s]",
                 self._name,
                 converted_display_temperature,
@@ -241,15 +271,13 @@ class FujitsuClimate(ClimateEntity):
         """Set new target temperature."""
         if (target_temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
             rounded_temperature = self.round_off_temperature(target_temperature)
-            _LOGGER.debug(
+            _LOGGER.warning(
                 "FujitsuClimate device [%s] set_temperature [%s] will be rounded with [%s]",
                 self._name,
                 target_temperature,
                 rounded_temperature,
             )
-            await self._hass.async_add_executor_job(
-                self._fujitsu_device.changeTemperature, rounded_temperature
-            )
+            await self._fujitsu_device.async_changeTemperature(rounded_temperature)
         else:
             _LOGGER.error(
                 "FujitsuClimate device [%s] A target temperature must be provided",
@@ -260,11 +288,15 @@ class FujitsuClimate(ClimateEntity):
         """Round temperature to the closest half."""
         return round(temperature * 2) / 2
 
-    @property
-    def target_temperature(self) -> float:
+    async def async_target_temperature(self) -> float | None:
         """Return the temperature we try to reach."""
-        data: float = self._fujitsu_device.adjust_temperature_degree
+        data = await self._fujitsu_device.async_get_adjust_temperature_degree()
         return data
+
+    @property
+    def target_temperature(self) -> float | None:
+        """Getter for the temperature we try to reach."""
+        return self._target_temperature
 
     @property
     def target_temperature_step(self) -> float:
@@ -274,7 +306,7 @@ class FujitsuClimate(ClimateEntity):
     @property
     def is_on(self) -> bool:
         """Return true if on."""
-        if self._fujitsu_device.operation_mode["value"] != 0:
+        if self._fujitsu_device.get_operation_mode()["value"] != 0:
             return True
         else:
             return False
@@ -282,13 +314,13 @@ class FujitsuClimate(ClimateEntity):
     @property
     def hvac_mode(self) -> Any:
         """Return current operation ie. heat, cool, idle."""
-        _LOGGER.debug(
+        _LOGGER.warning(
             "FujitsuClimate device [%s] return current operation_mode [%s] ; operation_mode_desc [%s]",
             self._name,
-            self._fujitsu_device.operation_mode["value"],
-            self._fujitsu_device.operation_mode_desc,
+            self._fujitsu_device.get_operation_mode()["value"],
+            self._fujitsu_device.get_operation_mode_desc(),
         )
-        return FUJITSU_TO_HA_STATE[self._fujitsu_device.operation_mode_desc]
+        return FUJITSU_TO_HA_STATE[self._fujitsu_device.get_operation_mode_desc()]
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
@@ -302,7 +334,7 @@ class FujitsuClimate(ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new target hvac mode."""
-        _LOGGER.debug(
+        _LOGGER.warning(
             "FujitsuClimate device [%s] set_hvac_mode called. Current _hvac_mode [%s] ; new hvac_mode [%s]",
             self._name,
             self._hvac_mode,
@@ -315,14 +347,13 @@ class FujitsuClimate(ClimateEntity):
 
         if hvac_mode == HVACMode.OFF:
             """Turn device off."""
-            await self._hass.async_add_executor_job(self._fujitsu_device.turnOff)
+            await self._fujitsu_device.async_turnOff()
         else:
-            await self._hass.async_add_executor_job(
-                self._fujitsu_device.changeOperationMode,
-                HA_STATE_TO_FUJITSU.get(hvac_mode),
+            await self._fujitsu_device.async_changeOperationMode(
+                HA_STATE_TO_FUJITSU.get(hvac_mode)
             )
 
-        _LOGGER.debug(
+        _LOGGER.warning(
             "FujitsuClimate device [%s] set_hvac_mode called. Current mode [%s] new will be [%s]",
             self._name,
             self._hvac_mode,
@@ -331,18 +362,41 @@ class FujitsuClimate(ClimateEntity):
 
     async def async_turn_on(self) -> None:
         """Set the HVAC State to on by setting the operation mode to the last operation mode other than off"""
-        _LOGGER.debug("Turning on FujitsuClimate device [%s]", self._name)
-        await self._hass.async_add_executor_job(self._fujitsu_device.turnOn)
+        _LOGGER.warning("Turning on FujitsuClimate device [%s]", self._name)
+        await self._fujitsu_device.async_turnOn()
 
     async def async_turn_off(self) -> None:
         """Set the HVAC State to off."""
-        _LOGGER.debug("Turning off FujitsuClimate device [%s]", self._name)
-        await self._hass.async_add_executor_job(self._fujitsu_device.turnOff)
+        _LOGGER.warning("Turning off FujitsuClimate device [%s]", self._name)
+        await self._fujitsu_device.async_turnOff()
 
     async def async_update(self) -> None:
         """Retrieve latest state."""
-        _LOGGER.debug("Update FujitsuClimate device [%s]", self._name)
-        await self._hass.async_add_executor_job(self._fujitsu_device.refresh_properties)
+        _LOGGER.warning("Update FujitsuClimate device BY async_update")
+        self._properties = await self._fujitsu_device.async_update_properties()
+        self._name = self.name
+        self._unique_id = self.unique_id
+        self._aux_heat = self.is_aux_heat_on
+        self._current_temperature = self.current_temperature
+        self._target_temperature = await self.async_target_temperature()
+        self._fan_mode = self.fan_mode
+        self._hvac_mode = self.hvac_mode
+        self._swing_modes = self.swing_modes
+        self._swing_mode = self.swing_mode
+        self._fan_modes = [
+            FAN_AUTO,
+            FAN_LOW,
+            FAN_MEDIUM,
+            FAN_HIGH,
+            FAN_DIFFUSE,
+        ]
+        self._hvac_modes = SUPPORTED_MODES
+        self._preset_modes = [PRESET_NONE, PRESET_ECO, PRESET_BOOST]
+        self._on = self.is_on
+        _LOGGER.debug(
+            "FujitsuClimate finish init for device [%s]",
+            self.name,
+        )
 
     @property
     def fan_mode(self) -> Any:
@@ -368,29 +422,27 @@ class FujitsuClimate(ClimateEntity):
             fan_mode,
             new_fan_speed,
         )
-        await self._hass.async_add_executor_job(
-            self._fujitsu_device.changeFanSpeed, new_fan_speed
-        )
+        await self._fujitsu_device.async_changeFanSpeed(new_fan_speed)
 
     @property
     def swing_mode(self) -> str:
         """Return the swing setting."""
         # Not only returns vertical settings, horizontal setting except for swing ignored
-        vaneVerticalValue = self._fujitsu_device.vane_vertical()
-        swingVerticalValue = self._fujitsu_device.af_vertical_swing["value"]
-        swingHorizontalValue = self._fujitsu_device.af_horizontal_swing["value"]
+        vane_vertical_value = self._fujitsu_device.vane_vertical()
+        swing_vertical_value = self._fujitsu_device.get_af_vertical_swing()["value"]
+        swing_horizontal_value = self._fujitsu_device.get_af_horizontal_swing()["value"]
 
         _LOGGER.debug(
             "FujitsuClimate device [%s] swing value %s",
             self._name,
-            swingVerticalValue,
+            swing_vertical_value,
         )
-        if swingVerticalValue == 1 and swingHorizontalValue == 1:
+        if swing_vertical_value == 1 and swing_horizontal_value == 1:
             mode = SWING_BOTH
-        elif swingVerticalValue == 1:
+        elif swing_vertical_value == 1:
             mode = SWING_VERTICAL
         else:
-            mode = VERTICAL + str(vaneVerticalValue)
+            mode = VERTICAL + str(vane_vertical_value)
 
         self._swing_mode = mode
 
@@ -402,12 +454,12 @@ class FujitsuClimate(ClimateEntity):
         _LOGGER.debug(
             "FujitsuClimate device [%s] vertical swing value [%s]",
             self._name,
-            swingVerticalValue,
+            swing_vertical_value,
         )
         _LOGGER.debug(
             "FujitsuClimate device [%s] horizontal swing value [%s]",
             self._name,
-            swingHorizontalValue,
+            swing_horizontal_value,
         )
         return self._swing_mode
 
@@ -448,19 +500,19 @@ class FujitsuClimate(ClimateEntity):
         """Set new target swing."""
         # Note setting one direction will not affect other, except swing both
         if swing_mode == SWING_VERTICAL:
-            self._fujitsu_device.af_vertical_swing = 1
+            await self._fujitsu_device.async_set_af_vertical_swing(1)
         elif swing_mode == SWING_HORIZONTAL:
-            self._fujitsu_device.af_horizontal_swing = 1
+            await self._fujitsu_device.async_set_af_horizontal_swing(1)
         elif swing_mode == SWING_BOTH:
-            self._fujitsu_device.af_vertical_swing = 1
-            self._fujitsu_device.af_horizontal_swing = 1
+            await self._fujitsu_device.async_set_af_vertical_swing(1)
+            await self._fujitsu_device.async_set_af_horizontal_swing(1)
         elif swing_mode[0:9] == VERTICAL:
-            await self._hass.async_add_executor_job(
-                self._fujitsu_device.set_vane_vertical_position, int(swing_mode[-1])
+            await self._fujitsu_device.async_set_vane_vertical_position(
+                int(swing_mode[-1])
             )
         elif swing_mode[0:11] == HORIZONTAL:
-            await self._hass.async_add_executor_job(
-                self._fujitsu_device.set_vane_horizontal_position, int(swing_mode[-1])
+            await self._fujitsu_device.async_set_vane_horizontal_position(
+                int(swing_mode[-1])
             )
         _LOGGER.debug(
             "FujitsuClimate device [%s] swing choice [%s]",
@@ -471,10 +523,10 @@ class FujitsuClimate(ClimateEntity):
     @property
     def preset_mode(self) -> Any:
         """Return the preset setting."""
-        if not self._fujitsu_device._get_prop_from_json(
-            "economy_mode", self._fujitsu_device._properties
-        ) or not self._fujitsu_device._get_prop_from_json(
-            "powerful_mode", self._fujitsu_device._properties
+        if not get_prop_from_json(
+            "economy_mode", self._fujitsu_device.get_properties()
+        ) or not get_prop_from_json(
+            "powerful_mode", self._fujitsu_device.get_properties()
         ):
             _LOGGER.debug(
                 "FujitsuClimate device [%s] has no preset props",
@@ -482,18 +534,18 @@ class FujitsuClimate(ClimateEntity):
             )
             return PRESET_NONE
         else:
-            if self._fujitsu_device.economy_mode["value"] == 1:
+            if self._fujitsu_device.get_economy_mode()["value"] == 1:
                 _LOGGER.debug(
                     "FujitsuClimate device [%s] preset eco setting: %s",
                     self._name,
-                    self._fujitsu_device.economy_mode["value"],
+                    self._fujitsu_device.get_economy_mode()["value"],
                 )
                 return PRESET_ECO
-            if self._fujitsu_device.powerful_mode["value"] == 1:
+            if self._fujitsu_device.get_powerful_mode()["value"] == 1:
                 _LOGGER.debug(
                     "FujitsuClimate device [%s] preset boost setting: %s",
                     self._name,
-                    self._fujitsu_device.powerful_mode["value"],
+                    self._fujitsu_device.get_powerful_mode()["value"],
                 )
                 return PRESET_BOOST
             return PRESET_NONE
@@ -511,12 +563,12 @@ class FujitsuClimate(ClimateEntity):
             preset_mode.upper(),
         )
         if preset_mode == PRESET_NONE:
-            self._fujitsu_device.economy_mode = 0
-            self._fujitsu_device.powerful_mode = 0
+            await self._fujitsu_device.async_set_economy_mode(0)
+            await self._fujitsu_device.async_set_powerful_mode(0)
         elif preset_mode == PRESET_ECO:
-            self._fujitsu_device.economy_mode = 1
+            await self._fujitsu_device.async_set_economy_mode(1)
         elif preset_mode == PRESET_BOOST:
-            self._fujitsu_device.powerful_mode = 1
+            await self._fujitsu_device.async_set_powerful_mode(1)
 
     ############ old stuff
 

@@ -1,17 +1,2 @@
 # https://www.home-assistant.io/integrations/default_config/
 default_config:
-
-# https://www.home-assistant.io/integrations/logger/
-logger:
-  default: info
-  logs:
-    custom_components.fglair_heatpump_controller.climate: critical
-    homeassistant.components.climate: critical
-
-climate:
-  - platform: fglair_heatpump_controller
-    username: !secret FGLAIR_USER
-    password: !secret FGLAIR_PASS
-    region: "eu"
-    tokenpath: "token.txt"
-    temperature_offset: 2
