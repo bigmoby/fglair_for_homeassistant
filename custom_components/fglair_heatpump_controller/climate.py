@@ -53,8 +53,8 @@ from .const import (
     MAX_TEMP,
 )
 from . import FglairDataUpdateCoordinator
-from .client import FGLairApiClient
-from .splitac import get_prop_from_json, SplitAC
+from pyfujitsugeneral.client import FGLairApiClient
+from pyfujitsugeneral.splitac import SplitAC, get_prop_from_json
 
 
 _LOGGER = logging.getLogger(__name__)

@@ -8,10 +8,8 @@ import logging
 from datetime import timedelta
 from async_timeout import timeout
 
-from homeassistant.config_entries import ConfigEntry, SOURCE_IMPORT
-from homeassistant.core import Config
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 from homeassistant.helpers.update_coordinator import UpdateFailed
@@ -19,7 +17,7 @@ from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_REGION
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 
-from .client import FGLairApiClient
+from pyfujitsugeneral.client import FGLairApiClient
 from .const import CONF_TOKENPATH
 from .const import DEFAULT_TOKEN_PATH
 from .const import DOMAIN

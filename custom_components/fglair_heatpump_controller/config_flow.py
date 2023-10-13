@@ -18,8 +18,9 @@ from .const import CONF_TEMPERATURE_OFFSET
 from .const import CONF_TOKENPATH
 from .const import DEFAULT_TOKEN_PATH
 from .const import DEFAULT_TEMPERATURE_OFFSET
-from .client import FGLairApiClient
-from .utils import isBlank
+
+from pyfujitsugeneral.client import FGLairApiClient
+from pyfujitsugeneral.utils import isBlank
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
