@@ -53,7 +53,7 @@ class FGLairIntegrationFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  #
     ) -> FlowResult:
         """Register new entry."""
         unique_id = await self.async_set_unique_id(username)
-        _LOGGER.warning("==========>>>>>>>>>>>>>>> Creating unique ID %s", unique_id)
+        _LOGGER.debug("Creating unique ID %s", unique_id)
         self._abort_if_unique_id_configured({CONF_USERNAME: username})
         entry = self.async_create_entry(
             title=username,
@@ -66,7 +66,6 @@ class FGLairIntegrationFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  #
                 CONF_TOKEN: acquired_token,
             },
         )
-        _LOGGER.warning("==========>>>>>>>>>>>>>>> Creating entry %s", entry)
         return entry
 
     async def _create_client(
@@ -92,13 +91,9 @@ class FGLairIntegrationFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  #
                     tokenpath,
                     async_get_clientsession(self.hass),
                 )
-                _LOGGER.warning(
-                    "==========>>>>>>>>>>>>>>> Invoking authenticate for %s", username
-                )
+                _LOGGER.debug("Invoking authenticate for %s", username)
                 acquired_token = await _client.async_authenticate()
-                _LOGGER.warning(
-                    "==========>>>>>>>>>>>>>>> authentication token %s", acquired_token
-                )
+                _LOGGER.debug("authentication token %s", acquired_token)
         except (asyncio.TimeoutError, ClientError):
             return self.async_abort(reason="cannot_connect")
 

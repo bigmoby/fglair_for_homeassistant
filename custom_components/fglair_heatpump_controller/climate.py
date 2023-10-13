@@ -124,15 +124,8 @@ async def async_setup_entry(
     username: str = entry.data[CONF_USERNAME]
     password: str = entry.data[CONF_PASSWORD]
     region: str = entry.data[CONF_REGION]
-    # tokenpath: str = entry.data[CONF_TOKENPATH, DEFAULT_TOKEN_PATH] TODO
-    # temperature_offset: str = entry.data[CONF_TEMPERATURE_OFFSET, DEFAULT_TEMPERATURE_OFFSET] TODO
     tokenpath: str = entry.data[CONF_TOKENPATH]
     temperature_offset: float = entry.data[CONF_TEMPERATURE_OFFSET]
-
-    _LOGGER.debug("=============>>>>>>>>>>>>>>>>>> ECCOMI tokenpath")
-    _LOGGER.debug(tokenpath)
-    _LOGGER.debug("=============>>>>>>>>>>>>>>>>>> ECCOMI temperature_offset")
-    _LOGGER.debug(temperature_offset)
 
     fglair_api_client: FGLairApiClient = FGLairApiClient(
         username, password, region, tokenpath, async_get_clientsession(hass)
@@ -150,7 +143,7 @@ async def async_setup_entry(
 
     for dsn in devices:
         _LOGGER.debug(
-            "=======>>>>>>> CHIAMANDO FujitsuClimate con %s - %s - %s - %s  ",
+            "async_setup_entry called with %s - %s - %s - %s  ",
             dsn,
             region,
             tokenpath,
@@ -259,7 +252,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             converted_display_temperature = round(
                 ((curtemp["value"] / 100 - 32) * 5 / 9) + self._temperature_offset, 1
             )
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "FujitsuClimate device [%s] return display_temperature [%s]",
                 self._name,
                 converted_display_temperature,
@@ -270,7 +263,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         """Set new target temperature."""
         if (target_temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
             rounded_temperature = self.round_off_temperature(target_temperature)
-            _LOGGER.warning(
+            _LOGGER.debug(
                 "FujitsuClimate device [%s] set_temperature [%s] will be rounded with [%s]",
                 self._name,
                 target_temperature,
@@ -313,7 +306,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
     @property
     def hvac_mode(self) -> Any:
         """Return current operation ie. heat, cool, idle."""
-        _LOGGER.warning(
+        _LOGGER.debug(
             "FujitsuClimate device [%s] return current operation_mode [%s] ; operation_mode_desc [%s]",
             self._name,
             self._fujitsu_device.get_operation_mode()["value"],
@@ -333,7 +326,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
 
     async def async_set_hvac_mode(self, hvac_mode: HVACMode) -> None:
         """Set new target hvac mode."""
-        _LOGGER.warning(
+        _LOGGER.debug(
             "FujitsuClimate device [%s] set_hvac_mode called. Current _hvac_mode [%s] ; new hvac_mode [%s]",
             self._name,
             self._hvac_mode,
@@ -352,7 +345,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
                 HA_STATE_TO_FUJITSU.get(hvac_mode)
             )
 
-        _LOGGER.warning(
+        _LOGGER.debug(
             "FujitsuClimate device [%s] set_hvac_mode called. Current mode [%s] new will be [%s]",
             self._name,
             self._hvac_mode,
@@ -361,17 +354,17 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
 
     async def async_turn_on(self) -> None:
         """Set the HVAC State to on by setting the operation mode to the last operation mode other than off"""
-        _LOGGER.warning("Turning on FujitsuClimate device [%s]", self._name)
+        _LOGGER.debug("Turning on FujitsuClimate device [%s]", self._name)
         await self._fujitsu_device.async_turnOn()
 
     async def async_turn_off(self) -> None:
         """Set the HVAC State to off."""
-        _LOGGER.warning("Turning off FujitsuClimate device [%s]", self._name)
+        _LOGGER.debug("Turning off FujitsuClimate device [%s]", self._name)
         await self._fujitsu_device.async_turnOff()
 
     async def async_update(self) -> None:
         """Retrieve latest state."""
-        _LOGGER.warning("Update FujitsuClimate device BY async_update")
+        _LOGGER.debug("Update FujitsuClimate device by async_update")
         self._properties = await self._fujitsu_device.async_update_properties()
         self._name = self.name
         self._unique_id = self.unique_id
