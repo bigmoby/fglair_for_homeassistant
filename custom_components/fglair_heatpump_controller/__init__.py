@@ -4,7 +4,6 @@ Custom integration to integrate FGLair Home Assistant Integration with Home Assi
 For more details about this integration, please refer to
 https://github.com/bigmoby/fglair_heatpump_controller
 """
-import asyncio
 import logging
 from datetime import timedelta
 from async_timeout import timeout

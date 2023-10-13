@@ -4,8 +4,7 @@ Support for the Fujitsu General Split A/C Wifi platform AKA FGLair .
 
 import logging
 
-
-from typing import Any, Final
+from typing import Any
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
@@ -240,7 +239,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         """Reusing is for Powerfull mode."""
         if not hasattr(self._fujitsu_device.get_powerful_mode(), "value"):
             return False
-        elif self._fujitsu_device.get_powerful_mode()["value"] == 1:
+        elif self._fujitsu_device.get_powerful_mode()["value"]:
             return True
         else:
             return False
@@ -429,17 +428,17 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         """Return the swing setting."""
         # Not only returns vertical settings, horizontal setting except for swing ignored
         vane_vertical_value = self._fujitsu_device.vane_vertical()
-        swing_vertical_value = self._fujitsu_device.get_af_vertical_swing()["value"]
-        swing_horizontal_value = self._fujitsu_device.get_af_horizontal_swing()["value"]
+        swing_vertical = self._fujitsu_device.get_af_vertical_swing()["value"]
+        swing_horizontal = self._fujitsu_device.get_af_horizontal_swing()["value"]
 
         _LOGGER.debug(
             "FujitsuClimate device [%s] swing value %s",
             self._name,
-            swing_vertical_value,
+            swing_vertical,
         )
-        if swing_vertical_value == 1 and swing_horizontal_value == 1:
+        if swing_vertical and swing_horizontal:
             mode = SWING_BOTH
-        elif swing_vertical_value == 1:
+        elif swing_vertical:
             mode = SWING_VERTICAL
         else:
             mode = VERTICAL + str(vane_vertical_value)
@@ -454,12 +453,12 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         _LOGGER.debug(
             "FujitsuClimate device [%s] vertical swing value [%s]",
             self._name,
-            swing_vertical_value,
+            swing_vertical,
         )
         _LOGGER.debug(
             "FujitsuClimate device [%s] horizontal swing value [%s]",
             self._name,
-            swing_horizontal_value,
+            swing_horizontal,
         )
         return self._swing_mode
 
@@ -534,14 +533,14 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             )
             return PRESET_NONE
         else:
-            if self._fujitsu_device.get_economy_mode()["value"] == 1:
+            if self._fujitsu_device.get_economy_mode()["value"]:
                 _LOGGER.debug(
                     "FujitsuClimate device [%s] preset eco setting: %s",
                     self._name,
                     self._fujitsu_device.get_economy_mode()["value"],
                 )
                 return PRESET_ECO
-            if self._fujitsu_device.get_powerful_mode()["value"] == 1:
+            if self._fujitsu_device.get_powerful_mode()["value"]:
                 _LOGGER.debug(
                     "FujitsuClimate device [%s] preset boost setting: %s",
                     self._name,

@@ -35,17 +35,17 @@ class SplitAC:
         self._temperature_offset = temperature_offset
         self.set_properties(None)
         self._device_name: dict[str, str] = {}
-        self._af_vertical_swing: dict[str, int] = {}
+        self._af_vertical_swing: dict[str, bool] = {}
         self._af_vertical_direction: dict[str, int] = {}
         self._af_vertical_num_dir: dict[str, int] = {}
-        self._af_horizontal_swing: dict[str, int] = {}
+        self._af_horizontal_swing: dict[str, bool] = {}
         self._af_horizontal_direction: dict[str, int] = {}
         self._af_horizontal_num_dir: dict[str, int] = {}
-        self._economy_mode: dict[str, int] = {}
+        self._economy_mode: dict[str, bool] = {}
         self._fan_speed: dict[str, int] = {}
-        self._powerful_mode: dict[str, int] = {}
-        self._min_heat: dict[str, int] = {}
-        self._outdoor_low_noise: dict[str, int] = {}
+        self._powerful_mode: dict[str, bool] = {}
+        self._min_heat: dict[str, bool] = {}
+        self._outdoor_low_noise: dict[str, bool] = {}
         self._operation_mode: dict[str, int] = {}
         self._adjust_temperature: dict[str, int] = {}
         self._display_temperature: dict[str, int] = {}
@@ -269,7 +269,7 @@ class SplitAC:
         return data
 
     # property returns display temperature dict in 10 times of degree C
-    def get_display_temperature(self) -> dict[str, Any]:
+    def get_display_temperature(self) -> dict[str, int]:
         return self._display_temperature
 
     async def async_set_display_temperature(self, properties: Any) -> None:
@@ -293,7 +293,7 @@ class SplitAC:
         return data
 
     # property returns outdoor temperature dict in 10 times of degree C
-    def get_outdoor_temperature(self) -> dict[str, Any]:
+    def get_outdoor_temperature(self) -> dict[str, int]:
         return self._outdoor_temperature
 
     async def async_set_outdoor_temperature(self, properties: Any) -> None:
@@ -343,7 +343,7 @@ class SplitAC:
         else:
             raise FGLairMethodException("Wrong usage of the method!")
 
-    def get_outdoor_low_noise(self) -> dict[str, int]:
+    def get_outdoor_low_noise(self) -> dict[str, bool]:
         return self._outdoor_low_noise
 
     async def async_set_outdoor_low_noise(self, properties: Any) -> None:
@@ -359,7 +359,7 @@ class SplitAC:
         else:
             raise FGLairMethodException("Wrong usage of the method!")
 
-    def get_powerful_mode(self) -> dict[str, int]:
+    def get_powerful_mode(self) -> dict[str, bool]:
         return self._powerful_mode
 
     async def async_set_powerful_mode(self, properties: Any) -> None:
@@ -393,7 +393,7 @@ class SplitAC:
         else:
             raise FGLairMethodException("Wrong usage of the method!")
 
-    def get_min_heat(self) -> dict[str, int]:
+    def get_min_heat(self) -> dict[str, bool]:
         return self._min_heat
 
     async def async_set_min_heat(self, properties: Any) -> None:
@@ -407,7 +407,7 @@ class SplitAC:
         else:
             raise FGLairMethodException("Wrong usage of the method!")
 
-    def get_economy_mode(self) -> dict[str, int]:
+    def get_economy_mode(self) -> dict[str, bool]:
         return self._economy_mode
 
     async def async_set_economy_mode(self, properties: Any) -> None:
@@ -448,7 +448,7 @@ class SplitAC:
                 "Wrong usage of the method or direction out of range!"
             )
 
-    def get_af_horizontal_swing(self) -> dict[str, int]:
+    def get_af_horizontal_swing(self) -> dict[str, bool]:
         return self._af_horizontal_swing
 
     async def async_set_af_horizontal_swing(self, properties: Any) -> None:
@@ -491,7 +491,7 @@ class SplitAC:
                 "Wrong usage of the method or direction out of range!"
             )
 
-    def get_af_vertical_swing(self) -> dict[str, int]:
+    def get_af_vertical_swing(self) -> dict[str, bool]:
         return self._af_vertical_swing
 
     async def async_set_af_vertical_swing(self, properties: Any) -> None:
@@ -513,7 +513,7 @@ class SplitAC:
     def set_device_name(self, properties: Any) -> None:
         self._device_name = get_prop_from_json("device_name", properties)
 
-    def get_op_status(self) -> dict[str, Any]:
+    def get_op_status(self) -> dict[str, int]:
         return get_prop_from_json("op_status", self.get_properties())
 
     def get_op_status_desc(self) -> str | None:
