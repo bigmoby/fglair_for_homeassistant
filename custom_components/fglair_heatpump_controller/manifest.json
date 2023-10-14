@@ -5,8 +5,8 @@
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://github.com/bigmoby/fglair_for_homeassistant/blob/main/README.md",
-  "issue_tracker": "https://github.com/bigmoby/fglair_for_homeassistant/issues",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/bigmoby/fglair_for_homeassistant/issues",
   "requirements": ["pyfujitsugeneral==2.0.1"],
   "version": "0.3.0"
 }
