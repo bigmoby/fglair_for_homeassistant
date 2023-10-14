@@ -269,7 +269,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
                 target_temperature,
                 rounded_temperature,
             )
-            await self._fujitsu_device.async_changeTemperature(rounded_temperature)
+            await self._fujitsu_device.async_change_temperature(rounded_temperature)
         else:
             _LOGGER.error(
                 "FujitsuClimate device [%s] A target temperature must be provided",
@@ -341,7 +341,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             """Turn device off."""
             await self._fujitsu_device.async_turnOff()
         else:
-            await self._fujitsu_device.async_changeOperationMode(
+            await self._fujitsu_device.async_change_operation_mode(
                 HA_STATE_TO_FUJITSU.get(hvac_mode)
             )
 
