@@ -240,24 +240,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
     @property
     def current_temperature(self) -> float | None:
         """Return the current temperature in degrees Celsius."""
-        curtemp = get_prop_from_json(
-            "display_temperature", self._fujitsu_device.get_properties()
-        )
-        if not curtemp:
-            return None
-        else:
-            if curtemp["value"] == 65535:
-                _LOGGER.error("Display_temperature value not valid.")
-                return None
-            converted_display_temperature = round(
-                ((curtemp["value"] / 100 - 32) * 5 / 9) + self._temperature_offset, 1
-            )
-            _LOGGER.debug(
-                "FujitsuClimate device [%s] return display_temperature [%s]",
-                self._name,
-                converted_display_temperature,
-            )
-            return float(converted_display_temperature)
+        return self._current_temperature
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
@@ -369,7 +352,9 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         self._name = self.name
         self._unique_id = self.unique_id
         self._aux_heat = self.is_aux_heat_on
-        self._current_temperature = self.current_temperature
+        self._current_temperature = (
+            await self._fujitsu_device.async_get_display_temperature_degree()
+        )
         self._target_temperature = await self.async_target_temperature()
         self._fan_mode = self.fan_mode
         self._hvac_mode = self.hvac_mode
