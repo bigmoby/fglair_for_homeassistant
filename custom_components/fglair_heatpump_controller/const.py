@@ -7,7 +7,7 @@ from homeassistant.const import Platform
 NAME = "FGLair Home Assistant Integration"
 DOMAIN = "fglair_heatpump_controller"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.3.2"
+VERSION = "0.3.3"
 
 ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 ISSUE_URL = "https://github.com/bigmoby/fglair_for_homeassistant/issues"
