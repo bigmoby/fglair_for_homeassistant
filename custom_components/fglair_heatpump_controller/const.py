@@ -1,6 +1,7 @@
 """Constants for FGLair Home Assistant Integration."""
 
 from typing import Final
+
 from homeassistant.const import Platform
 
 # Base component constants

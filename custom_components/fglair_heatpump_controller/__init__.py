@@ -1,28 +1,30 @@
-"""
-Custom integration to integrate FGLair Home Assistant Integration with Home Assistant.
+"""Custom integration to integrate FGLair Home Assistant Integration with Home Assistant.
 
 For more details about this integration, please refer to
 https://github.com/bigmoby/fglair_heatpump_controller
-"""
+"""  # noqa: E501
+
 import logging
 from datetime import timedelta
-from async_timeout import timeout
 
+from async_timeout import timeout
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import CONF_PASSWORD, CONF_REGION, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from homeassistant.helpers.update_coordinator import UpdateFailed
-from homeassistant.const import CONF_USERNAME, CONF_PASSWORD, CONF_REGION
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
-
+from homeassistant.helpers.update_coordinator import (
+    DataUpdateCoordinator,
+    UpdateFailed,
+)
 from pyfujitsugeneral.client import FGLairApiClient
-from .const import CONF_TOKENPATH
-from .const import DEFAULT_TOKEN_PATH
-from .const import DOMAIN
-from .const import PLATFORMS
-from .const import STARTUP_MESSAGE
+
+from .const import (
+    CONF_TOKENPATH,
+    DEFAULT_TOKEN_PATH,
+    DOMAIN,
+    PLATFORMS,
+    STARTUP_MESSAGE,
+)
 
 SCAN_INTERVAL = timedelta(seconds=30)
 
@@ -54,7 +56,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload FGLair config."""
-    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+    if unload_ok := await hass.config_entries.async_unload_platforms(
+        entry, PLATFORMS
+    ):
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
 

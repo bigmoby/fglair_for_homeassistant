@@ -1,15 +1,47 @@
+default_language_version:
+    python: python3.11
 repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.4
+    hooks:
+      - id: ruff
+        args:
+          - --fix
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: v4.5.0
     hooks:
       - id: check-yaml
         args: ["--unsafe"]
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/psf/black
-    rev: 22.10.0
+    rev: 23.10.1
     hooks:
       - id: black
+        args:
+          - --line-length=79
+          - --preview
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        additional_dependencies:
+        - pydocstyle==6.3.0
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black", --line-length=79]
+  - repo: https://github.com/pylint-dev/pylint
+    rev: v3.0.2
+    hooks:
+      - id: pylint
+        additional_dependencies:
+        - pyfujitsugeneral==2.0.7
+        - homeassistant==2023.11.1
+        exclude: 'tests/'
+        args:
+        - --ignore=setup.py
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.0.1
     hooks:
