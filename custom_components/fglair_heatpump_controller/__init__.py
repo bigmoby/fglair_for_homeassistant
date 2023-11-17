@@ -5,7 +5,6 @@ https://github.com/bigmoby/fglair_heatpump_controller
 """  # noqa: E501
 
 import logging
-from datetime import timedelta
 
 from async_timeout import timeout
 from homeassistant.config_entries import ConfigEntry
@@ -23,10 +22,9 @@ from .const import (
     DEFAULT_TOKEN_PATH,
     DOMAIN,
     PLATFORMS,
+    SCAN_INTERVAL,
     STARTUP_MESSAGE,
 )
-
-SCAN_INTERVAL = timedelta(seconds=30)
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 

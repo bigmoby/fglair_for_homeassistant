@@ -1,6 +1,7 @@
 """Support for the Fujitsu General Split A/C Wifi platform AKA FGLair ."""
 
 import logging
+from datetime import datetime
 from typing import Any
 
 import homeassistant.helpers.config_validation as cv
@@ -36,6 +37,8 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util import Throttle
+from homeassistant.util.dt import utcnow
 from pyfujitsugeneral.client import FGLairApiClient
 from pyfujitsugeneral.splitac import SplitAC, get_prop_from_json
 
@@ -50,6 +53,8 @@ from .const import (
     HORIZONTAL,
     MAX_TEMP,
     MIN_TEMP,
+    MIN_TIME_BETWEEN_UPDATES,
+    REFRESH_MINUTES_INTERVAL,
     VERTICAL,
 )
 
@@ -360,6 +365,7 @@ class FujitsuClimate(
         _LOGGER.debug("Turning off FujitsuClimate device [%s]", self._name)
         await self._fujitsu_device.async_turnOff()
 
+    @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self) -> None:
         """Retrieve latest state."""
         _LOGGER.debug("Update FujitsuClimate device by async_update")
@@ -369,6 +375,9 @@ class FujitsuClimate(
         self._aux_heat = self.is_aux_heat_on
         self._current_temperature = (
             await self._fujitsu_device.async_get_display_temperature_degree()
+        )
+        await self._async_refresh_display_temperature_request(
+            self._fujitsu_device.get_refresh()["data_updated_at"]
         )
         self._target_temperature = await self.async_target_temperature()
         self._fan_mode = self.fan_mode
@@ -386,9 +395,28 @@ class FujitsuClimate(
         self._preset_modes = [PRESET_NONE, PRESET_ECO, PRESET_BOOST]
         self._on = self.is_on
         _LOGGER.debug(
-            "FujitsuClimate finish init for device [%s]",
+            "FujitsuClimate finish async_update for device [%s]",
             self.name,
         )
+
+    async def _async_refresh_display_temperature_request(
+        self, refreshed_data_updated_at_str: str
+    ) -> None:
+        refreshed_data_updated_at = datetime.strptime(
+            refreshed_data_updated_at_str, "%Y-%m-%dT%H:%M:%S%z"
+        )
+        _LOGGER.debug(
+            "Last refreshed update date [%s]", refreshed_data_updated_at
+        )
+        must_be_refreshed = utcnow() > (
+            refreshed_data_updated_at + REFRESH_MINUTES_INTERVAL
+        )
+
+        if must_be_refreshed:
+            _LOGGER.debug(
+                "display_temperature will be refreshed in async mode"
+            )
+            await self._fujitsu_device.async_set_refresh(1)
 
     @property
     def fan_mode(self) -> Any:

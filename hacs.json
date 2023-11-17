@@ -1,5 +1,5 @@
 {
     "name": "FGLair Home Assistant Integration",
     "render_readme": false,
-    "homeassistant": "2023.10.0"
+    "homeassistant": "2023.11.1"
 }

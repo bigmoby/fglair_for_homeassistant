@@ -1,5 +1,6 @@
 """Constants for FGLair Home Assistant Integration."""
 
+from datetime import timedelta
 from typing import Final
 
 from homeassistant.const import Platform
@@ -8,7 +9,7 @@ from homeassistant.const import Platform
 NAME = "FGLair Home Assistant Integration"
 DOMAIN = "fglair_heatpump_controller"
 DOMAIN_DATA = f"{DOMAIN}_data"
-VERSION = "0.3.3"
+VERSION = "0.3.4"
 
 ATTRIBUTION = "Data provided by http://jsonplaceholder.typicode.com/"
 ISSUE_URL = "https://github.com/bigmoby/fglair_for_homeassistant/issues"
@@ -36,6 +37,10 @@ DEFAULT_MIN_STEP: Final = 0.5
 
 VERTICAL = "Vertical_"
 HORIZONTAL = "Horizontal_"
+
+SCAN_INTERVAL = timedelta(seconds=60)
+MIN_TIME_BETWEEN_UPDATES = timedelta(seconds=60)
+REFRESH_MINUTES_INTERVAL = timedelta(minutes=3)
 
 # Defaults
 DEFAULT_NAME = DOMAIN

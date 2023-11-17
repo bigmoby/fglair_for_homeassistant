@@ -37,7 +37,7 @@ repos:
     hooks:
       - id: pylint
         additional_dependencies:
-        - pyfujitsugeneral==2.0.7
+        - pyfujitsugeneral==2.0.9
         - homeassistant==2023.11.1
         exclude: 'tests/'
         args:
