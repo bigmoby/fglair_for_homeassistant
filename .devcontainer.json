@@ -1,6 +1,6 @@
 {
     "name": "bigmoby/fglair_for_homeassistant",
-    "image": "mcr.microsoft.com/vscode/devcontainers/python:0-3.11-bullseye",
+    "image": "mcr.microsoft.com/vscode/devcontainers/python:dev-3.12-bullseye",
     "postCreateCommand": "scripts/setup",
     "forwardPorts": [
         8123

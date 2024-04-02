@@ -16,13 +16,10 @@ from homeassistant.components.climate.const import (
     PRESET_BOOST,
     PRESET_ECO,
     PRESET_NONE,
-    SUPPORT_FAN_MODE,
-    SUPPORT_PRESET_MODE,
-    SUPPORT_SWING_MODE,
-    SUPPORT_TARGET_TEMPERATURE,
     SWING_BOTH,
     SWING_HORIZONTAL,
     SWING_VERTICAL,
+    ClimateEntityFeature,
     HVACMode,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -62,10 +59,10 @@ _LOGGER = logging.getLogger(__name__)
 
 
 SUPPORT_FLAGS: Any = (
-    SUPPORT_FAN_MODE
-    | SUPPORT_SWING_MODE
-    | SUPPORT_TARGET_TEMPERATURE
-    | SUPPORT_PRESET_MODE
+    ClimateEntityFeature.FAN_MODE
+    | ClimateEntityFeature.SWING_MODE
+    | ClimateEntityFeature.TARGET_TEMPERATURE
+    | ClimateEntityFeature.PRESET_MODE
 )
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -176,6 +173,8 @@ class FujitsuClimate(
 ):  # pylint: disable=R0902,R0904,R0913
     """Representation of a Fujitsu HVAC device."""
 
+    _enable_turn_on_off_backwards_compatibility = False
+
     def __init__(
         self,
         fglair_api_client: FGLairApiClient,
@@ -198,6 +197,13 @@ class FujitsuClimate(
         self._fujitsu_device = SplitAC(
             self._dsn, self._fglairapi_client, tokenpath, temperature_offset
         )
+
+        self._attr_supported_features = (
+            ClimateEntityFeature.TURN_ON
+            | ClimateEntityFeature.TURN_OFF
+            | ClimateEntityFeature.TARGET_TEMPERATURE
+        )
+
         self._properties = None
         self._name = ""
         self._unique_id: str = ""
