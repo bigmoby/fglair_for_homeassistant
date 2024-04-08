@@ -2,19 +2,13 @@
 
 from __future__ import annotations
 
-import asyncio
 import logging
 
 import voluptuous as vol
 from aiohttp import ClientError
 from async_timeout import timeout
-from homeassistant import config_entries
-from homeassistant.const import (
-    CONF_PASSWORD,
-    CONF_REGION,
-    CONF_TOKEN,
-    CONF_USERNAME,
-)
+from homeassistant.config_entries import ConfigFlow
+from homeassistant.const import CONF_PASSWORD, CONF_REGION, CONF_TOKEN, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from pyfujitsugeneral.client import FGLairApiClient
@@ -43,7 +37,7 @@ DATA_SCHEMA = vol.Schema(
 )
 
 
-class FGLairIntegrationFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg] # pylint: disable=C0301 # noqa: E501
+class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
     """Handle a config flow."""
 
     VERSION = 1
@@ -85,8 +79,7 @@ class FGLairIntegrationFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  #
         """Create client."""
         if isBlank(password) or isBlank(region):
             raise ValueError(
-                "Invalid internal state. Called without either password or"
-                " region"
+                "Invalid internal state. Called without either password or region"
             )
 
         try:
@@ -101,7 +94,7 @@ class FGLairIntegrationFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  #
                 _LOGGER.debug("Invoking authenticate for %s", username)
                 acquired_token = await _client.async_authenticate()
                 _LOGGER.debug("authentication token %s", acquired_token)
-        except (asyncio.TimeoutError, ClientError):
+        except (TimeoutError, ClientError):
             return self.async_abort(reason="cannot_connect")
 
         return await self._create_entry(
@@ -113,7 +106,9 @@ class FGLairIntegrationFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):  #
             acquired_token,
         )
 
-    async def async_step_user(self, user_input: dict | None = None) -> FlowResult:  # type: ignore[type-arg] # pylint: disable=C0301 # noqa: E501
+    async def async_step_user(
+        self, user_input: dict | None = None  # type: ignore[type-arg]
+    ) -> FlowResult:
         """User initiated config flow."""
         if user_input is None:
             return self.async_show_form(
