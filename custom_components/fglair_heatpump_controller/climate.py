@@ -71,9 +71,9 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Optional("region"): cv.string,
         vol.Optional("tokenpath", default=DEFAULT_TOKEN_PATH): cv.string,
-        vol.Optional(
-            "temperature_offset", default=DEFAULT_TEMPERATURE_OFFSET
-        ): vol.All(vol.Coerce(float), vol.Range(min=-5, max=5)),
+        vol.Optional("temperature_offset", default=DEFAULT_TEMPERATURE_OFFSET): vol.All(
+            vol.Coerce(float), vol.Range(min=-5, max=5)
+        ),
     }
 )
 
@@ -99,9 +99,7 @@ FUJITSU_TO_HA_STATE = {
     "heat": HVACMode.HEAT,
 }
 
-HA_STATE_TO_FUJITSU = {
-    value: key for key, value in FUJITSU_TO_HA_STATE.items()
-}
+HA_STATE_TO_FUJITSU = {value: key for key, value in FUJITSU_TO_HA_STATE.items()}
 
 SUPPORTED_MODES: list[HVACMode] = [
     HVACMode.OFF,
@@ -121,9 +119,7 @@ async def async_setup_entry(
     """Setups the FujitsuClimate Platform based on a config entry."""
     _LOGGER.debug("FujitsuClimate async_setup_entry called")
 
-    coordinator: FglairDataUpdateCoordinator = hass.data[DOMAIN][
-        entry.entry_id
-    ]
+    coordinator: FglairDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
     username: str = entry.data[CONF_USERNAME]
     password: str = entry.data[CONF_PASSWORD]
@@ -261,9 +257,7 @@ class FujitsuClimate(
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
         if (target_temperature := kwargs.get(ATTR_TEMPERATURE)) is not None:
-            rounded_temperature = self.round_off_temperature(
-                target_temperature
-            )
+            rounded_temperature = self.round_off_temperature(target_temperature)
             _LOGGER.debug(
                 "FujitsuClimate device [%s] set_temperature [%s] will be"
                 " rounded with [%s]",
@@ -271,13 +265,10 @@ class FujitsuClimate(
                 target_temperature,
                 rounded_temperature,
             )
-            await self._fujitsu_device.async_change_temperature(
-                rounded_temperature
-            )
+            await self._fujitsu_device.async_change_temperature(rounded_temperature)
         else:
             _LOGGER.error(
-                "FujitsuClimate device [%s] A target temperature must be"
-                " provided",
+                "FujitsuClimate device [%s] A target temperature must be provided",
                 self._name,
             )
 
@@ -317,9 +308,7 @@ class FujitsuClimate(
             self._fujitsu_device.get_operation_mode()["value"],
             self._fujitsu_device.get_operation_mode_desc(),
         )
-        return FUJITSU_TO_HA_STATE[
-            self._fujitsu_device.get_operation_mode_desc()
-        ]
+        return FUJITSU_TO_HA_STATE[self._fujitsu_device.get_operation_mode_desc()]
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
@@ -411,17 +400,13 @@ class FujitsuClimate(
         refreshed_data_updated_at = datetime.strptime(
             refreshed_data_updated_at_str, "%Y-%m-%dT%H:%M:%S%z"
         )
-        _LOGGER.debug(
-            "Last refreshed update date [%s]", refreshed_data_updated_at
-        )
+        _LOGGER.debug("Last refreshed update date [%s]", refreshed_data_updated_at)
         must_be_refreshed = utcnow() > (
             refreshed_data_updated_at + REFRESH_MINUTES_INTERVAL
         )
 
         if must_be_refreshed:
-            _LOGGER.debug(
-                "display_temperature will be refreshed in async mode"
-            )
+            _LOGGER.debug("display_temperature will be refreshed in async mode")
             await self._fujitsu_device.async_set_refresh(1)
 
     @property
@@ -457,9 +442,7 @@ class FujitsuClimate(
         # horizontal setting except for swing ignored
         vane_vertical_value = self._fujitsu_device.vane_vertical()
         swing_vertical = self._fujitsu_device.get_af_vertical_swing()["value"]
-        swing_horizontal = self._fujitsu_device.get_af_horizontal_swing()[
-            "value"
-        ]
+        swing_horizontal = self._fujitsu_device.get_af_horizontal_swing()["value"]
 
         _LOGGER.debug(
             "FujitsuClimate device [%s] swing value %s",
@@ -496,12 +479,8 @@ class FujitsuClimate(
     def swing_modes(self) -> list[str] | None:
         """List of available swing modes."""
 
-        vert_pos_list: list[str] = (
-            self._fujitsu_device.vane_vertical_positions()
-        )
-        hori_pos_list: list[str] = (
-            self._fujitsu_device.vane_horizontal_positions()
-        )
+        vert_pos_list: list[str] = self._fujitsu_device.vane_vertical_positions()
+        hori_pos_list: list[str] = self._fujitsu_device.vane_horizontal_positions()
         pos_list: list[str] | None = []
 
         # Add swing modes to start of list if supported
@@ -510,22 +489,14 @@ class FujitsuClimate(
             pos_list.append(SWING_VERTICAL)
             pos_list.append(SWING_HORIZONTAL)
             pos_list.append(SWING_BOTH)
-            pos_list = pos_list + [
-                VERTICAL + str(itm) for itm in vert_pos_list
-            ]
-            pos_list = pos_list + [
-                HORIZONTAL + str(itm) for itm in hori_pos_list
-            ]
+            pos_list = pos_list + [VERTICAL + str(itm) for itm in vert_pos_list]
+            pos_list = pos_list + [HORIZONTAL + str(itm) for itm in hori_pos_list]
         elif modes_list == "Vertical" and pos_list is not None:
             pos_list.append(SWING_VERTICAL)
-            pos_list = pos_list + [
-                VERTICAL + str(itm) for itm in vert_pos_list
-            ]
+            pos_list = pos_list + [VERTICAL + str(itm) for itm in vert_pos_list]
         elif modes_list == "Horizontal" and pos_list is not None:
             pos_list.append(SWING_HORIZONTAL)
-            pos_list = pos_list + [
-                HORIZONTAL + str(itm) for itm in hori_pos_list
-            ]
+            pos_list = pos_list + [HORIZONTAL + str(itm) for itm in hori_pos_list]
         else:
             pos_list = None
 

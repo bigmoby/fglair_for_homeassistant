@@ -2,7 +2,7 @@ default_language_version:
   python: python3.12
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.4
+    rev: v0.3.5
     hooks:
       - id: ruff
         args:
@@ -19,7 +19,7 @@ repos:
     hooks:
       - id: black
         args:
-          - --line-length=79
+          - --line-length=88
           - --preview
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
@@ -31,21 +31,9 @@ repos:
     rev: 5.12.0
     hooks:
       - id: isort
-        args: ["--profile", "black", --line-length=79]
-  - repo: https://github.com/pylint-dev/pylint
-    rev: v3.0.2
-    hooks:
-      - id: pylint
-        additional_dependencies:
-          - pyfujitsugeneral==2.0.9
-          - homeassistant==2024.3.3
-        exclude: "tests/"
-        args: [
-            "--ignore=setup.py",
-            "--load-plugins=hass_enforce_type_hints", # Load an extension
-          ]
+        args: ["--profile", "black", --line-length=88]
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.0.1
+    rev: v1.9.0
     hooks:
       - id: mypy
         exclude: ^tests/
@@ -53,3 +41,5 @@ repos:
         language: python
         # use your preferred Python version
         language_version: python3.12
+        additional_dependencies:
+          - "pydantic>=1.10.12"
