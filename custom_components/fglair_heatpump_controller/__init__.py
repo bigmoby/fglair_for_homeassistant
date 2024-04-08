@@ -1,8 +1,6 @@
-"""Custom integration to integrate FGLair Home Assistant Integration with Home Assistant.
-
-For more details about this integration, please refer to
-https://github.com/bigmoby/fglair_heatpump_controller
-"""  # noqa: E501
+"""Custom integration to integrate FGLair Home Assistant Integration
+with Home Assistant.
+"""
 
 import logging
 
@@ -11,10 +9,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_REGION, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.helpers.update_coordinator import (
-    DataUpdateCoordinator,
-    UpdateFailed,
-)
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pyfujitsugeneral.client import FGLairApiClient
 
 from .const import (
@@ -54,9 +49,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload FGLair config."""
-    if unload_ok := await hass.config_entries.async_unload_platforms(
-        entry, PLATFORMS
-    ):
+    if unload_ok := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         hass.data[DOMAIN].pop(entry.entry_id)
     return unload_ok
 
@@ -85,4 +78,4 @@ class FglairDataUpdateCoordinator(DataUpdateCoordinator):
             async with timeout(10):
                 await self.client.async_get_devices_dsn()
         except Exception as exception:
-            raise UpdateFailed() from exception
+            raise UpdateFailed from exception

@@ -9,5 +9,5 @@
   "issue_tracker": "https://github.com/bigmoby/fglair_for_homeassistant/issues",
   "loggers": ["pyfujitsugeneral"],
   "requirements": ["pyfujitsugeneral==2.0.9"],
-  "version": "0.3.4"
+  "version": "0.3.5"
 }
