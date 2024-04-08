@@ -1,9 +1,18 @@
 {
-    "cSpell.words": [
-        "pyfujitsugeneral"
-    ],
+    "python.linting.pylintEnabled": false,
+    "python.formatting.provider": "none",
+    "files.eol": "\n",
+    "editor.tabSize": 4,
+    "python.pythonPath": "/usr/bin/python3",
+    "python.analysis.autoSearchPaths": false,
     "[python]": {
         "editor.defaultFormatter": "ms-python.black-formatter"
     },
-    "python.formatting.provider": "none"
+    "editor.formatOnPaste": false,
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "files.trimTrailingWhitespace": true,
+    "cSpell.words": [
+        "pyfujitsugeneral"
+    ]
 }
