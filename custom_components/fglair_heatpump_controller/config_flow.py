@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 import voluptuous as vol
 from aiohttp import ClientError
-from async_timeout import timeout
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PASSWORD, CONF_REGION, CONF_TOKEN, CONF_USERNAME
 from homeassistant.data_entry_flow import FlowResult
@@ -83,7 +83,7 @@ class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[c
             )
 
         try:
-            async with timeout(10):
+            async with asyncio.timeout(10):
                 _client = FGLairApiClient(
                     username,
                     password,

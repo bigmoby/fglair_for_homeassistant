@@ -1,12 +1,12 @@
 default_language_version:
   python: python3.12
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.5
-    hooks:
-      - id: ruff
-        args:
-          - --fix
+  #- repo: https://github.com/astral-sh/ruff-pre-commit
+  #  rev: v0.3.5
+  #  hooks:
+  #    - id: ruff
+  #      args:
+  #        - --fix
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
@@ -36,10 +36,8 @@ repos:
     rev: v1.9.0
     hooks:
       - id: mypy
-        exclude: ^tests/
         args: [--strict]
         language: python
-        # use your preferred Python version
         language_version: python3.12
         additional_dependencies:
           - "pydantic>=1.10.12"

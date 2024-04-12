@@ -6,7 +6,11 @@ from typing import Any
 
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from homeassistant.components.climate import PLATFORM_SCHEMA, ClimateEntity
+from homeassistant.components.climate import (
+    PLATFORM_SCHEMA,
+    ClimateEntity,
+    ClimateEntityFeature,
+)
 from homeassistant.components.climate.const import (
     FAN_AUTO,
     FAN_DIFFUSE,
@@ -19,7 +23,6 @@ from homeassistant.components.climate.const import (
     SWING_BOTH,
     SWING_HORIZONTAL,
     SWING_VERTICAL,
-    ClimateEntityFeature,
     HVACMode,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -58,11 +61,13 @@ from .const import (
 _LOGGER = logging.getLogger(__name__)
 
 
-SUPPORT_FLAGS: Any = (
+SUPPORT_FLAGS: ClimateEntityFeature = (
     ClimateEntityFeature.FAN_MODE
     | ClimateEntityFeature.SWING_MODE
     | ClimateEntityFeature.TARGET_TEMPERATURE
     | ClimateEntityFeature.PRESET_MODE
+    | ClimateEntityFeature.TURN_ON
+    | ClimateEntityFeature.TURN_OFF
 )
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
@@ -194,11 +199,7 @@ class FujitsuClimate(
             self._dsn, self._fglairapi_client, tokenpath, temperature_offset
         )
 
-        self._attr_supported_features = (
-            ClimateEntityFeature.TURN_ON
-            | ClimateEntityFeature.TURN_OFF
-            | ClimateEntityFeature.TARGET_TEMPERATURE
-        )
+        self._attr_supported_features = SUPPORT_FLAGS
 
         self._properties = None
         self._name = ""
