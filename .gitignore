@@ -152,3 +152,4 @@ config/*
 config/secrets.yaml
 !config/configuration.yaml
 token.txt
+.DS_Store
