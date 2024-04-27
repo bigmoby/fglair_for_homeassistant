@@ -40,7 +40,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import Throttle
 from homeassistant.util.dt import utcnow
 from pyfujitsugeneral.client import FGLairApiClient
-from pyfujitsugeneral.splitac import SplitAC, get_prop_from_json
+from pyfujitsugeneral.splitAC import SplitAC, get_prop_from_json
 
 from . import FglairDataUpdateCoordinator
 from .const import (

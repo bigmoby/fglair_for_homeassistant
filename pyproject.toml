@@ -9,7 +9,7 @@ license     = {text = "MIT License"}
 description = "FGLair heat pump controller integration"
 readme      = "README.md"
 authors     = [
-    {name = "Fabio Mauro", email = ""}
+    {name = "Fabio Bigmoby Mauro", email = ""}
 ]
 keywords    = ["home", "automation"]
 classifiers = [
