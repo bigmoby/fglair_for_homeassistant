@@ -2,7 +2,6 @@
 with Home Assistant.
 """
 
-import asyncio
 import logging
 
 from homeassistant.config_entries import ConfigEntry
@@ -75,7 +74,6 @@ class FglairDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> None:
         """Fetch data from library FGLairApiClient."""
         try:
-            async with asyncio.timeout(10):
-                await self.client.async_get_devices_dsn()
+            await self.client.async_get_devices_dsn()
         except Exception as exception:
             raise UpdateFailed from exception
