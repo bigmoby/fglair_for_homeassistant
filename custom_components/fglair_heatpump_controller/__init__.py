@@ -19,6 +19,7 @@ from .const import (
     PLATFORMS,
     SCAN_INTERVAL,
     STARTUP_MESSAGE,
+    DEFAULT_TIMEOUT
 )
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
@@ -75,7 +76,7 @@ class FglairDataUpdateCoordinator(DataUpdateCoordinator):
     async def _async_update_data(self) -> None:
         """Fetch data from library FGLairApiClient."""
         try:
-            async with asyncio.timeout(10):
+            async with asyncio.timeout(DEFAULT_TIMEOUT):
                 await self.client.async_get_devices_dsn()
         except Exception as exception:
             raise UpdateFailed from exception
