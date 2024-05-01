@@ -10,6 +10,7 @@ from homeassistant.components.climate import (
     PLATFORM_SCHEMA,
     ClimateEntity,
     ClimateEntityFeature,
+    HVACAction,
 )
 from homeassistant.components.climate.const import (
     FAN_AUTO,
@@ -114,6 +115,12 @@ SUPPORTED_MODES: list[HVACMode] = [
     HVACMode.DRY,
     HVACMode.FAN_ONLY,
 ]
+
+FUJITSU_TO_ACTION_LOOKUP = {
+    "Normal": HVACAction.HEATING,
+    # Heat pump cannot heat in this mode, but will be ready soon
+    "Defrost": HVACAction.PREHEATING,
+}
 
 
 async def async_setup_entry(
@@ -350,6 +357,13 @@ class FujitsuClimate(
             self._hvac_mode,
             hvac_mode,
         )
+
+    @property
+    def hvac_action(self) -> HVACAction | None:
+        """Return the current running hvac operation."""
+        if not self.is_on:
+            return HVACAction.OFF
+        return FUJITSU_TO_ACTION_LOOKUP.get(self._fujitsu_device.get_op_status_desc())
 
     async def async_turn_on(self) -> None:
         """Set the HVAC State to on."""
