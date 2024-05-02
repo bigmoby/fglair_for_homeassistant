@@ -5,7 +5,6 @@ from __future__ import annotations
 import asyncio
 import logging
 
-import voluptuous as vol
 from aiohttp import ClientError
 from homeassistant.config_entries import ConfigFlow
 from homeassistant.const import CONF_PASSWORD, CONF_REGION, CONF_TOKEN, CONF_USERNAME
@@ -13,6 +12,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from pyfujitsugeneral.client import FGLairApiClient
 from pyfujitsugeneral.utils import isBlank
+import voluptuous as vol
 
 from .const import (
     CONF_TEMPERATURE_OFFSET,

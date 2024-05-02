@@ -1,11 +1,9 @@
 """Support for the Fujitsu General Split A/C Wifi platform AKA FGLair ."""
 
-import logging
 from datetime import datetime
+import logging
 from typing import Any
 
-import homeassistant.helpers.config_validation as cv
-import voluptuous as vol
 from homeassistant.components.climate import (
     PLATFORM_SCHEMA,
     ClimateEntity,
@@ -36,12 +34,14 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import Throttle
 from homeassistant.util.dt import utcnow
 from pyfujitsugeneral.client import FGLairApiClient
 from pyfujitsugeneral.splitAC import SplitAC, get_prop_from_json
+import voluptuous as vol
 
 from . import FglairDataUpdateCoordinator
 from .const import (

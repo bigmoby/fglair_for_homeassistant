@@ -14,12 +14,12 @@ from pyfujitsugeneral.client import FGLairApiClient
 
 from .const import (
     CONF_TOKENPATH,
+    DEFAULT_TIMEOUT,
     DEFAULT_TOKEN_PATH,
     DOMAIN,
     PLATFORMS,
     SCAN_INTERVAL,
     STARTUP_MESSAGE,
-    DEFAULT_TIMEOUT
 )
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)

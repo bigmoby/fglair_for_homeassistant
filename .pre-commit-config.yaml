@@ -1,12 +1,12 @@
 default_language_version:
   python: python3.12
 repos:
-  #- repo: https://github.com/astral-sh/ruff-pre-commit
-  #  rev: v0.3.5
-  #  hooks:
-  #    - id: ruff
-  #      args:
-  #        - --fix
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.3.5
+    hooks:
+      - id: ruff
+        args:
+          - --fix
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.5.0
     hooks:
@@ -27,11 +27,6 @@ repos:
       - id: flake8
         additional_dependencies:
           - pydocstyle==6.3.0
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        args: ["--profile", "black", --line-length=88]
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.9.0
     hooks:
