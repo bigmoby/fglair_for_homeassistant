@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "fglair_heatpump_controller"
-version     = "0.3.10"
+version     = "0.3.11"
 license     = {text = "MIT License"}
 description = "FGLair heat pump controller integration"
 readme      = "README.md"
@@ -690,7 +690,7 @@ max-complexity = 25
 # mypy global options:
 
 [tool.mypy]
-python_version = 3.11
+python_version = 3.12
 plugins = "pydantic.mypy"
 pretty = true
 show_error_codes = true
