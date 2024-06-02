@@ -309,14 +309,22 @@ class FujitsuClimate(
     @property
     def hvac_mode(self) -> Any:
         """Return current operation ie. heat, cool, idle."""
+        operation_mode_desc = self._fujitsu_device.get_operation_mode_desc()
+        label_state = FUJITSU_TO_HA_STATE.get(operation_mode_desc)
+
+        operation_mode_value = self._fujitsu_device.get_operation_mode().get(
+            "value", "Unknown"
+        )
+
         _LOGGER.debug(
             "FujitsuClimate device [%s] return current operation_mode [%s] ;"
-            " operation_mode_desc [%s]",
+            " operation_mode_desc [%s] ; translated into [%s]",
             self._name,
-            self._fujitsu_device.get_operation_mode()["value"],
-            self._fujitsu_device.get_operation_mode_desc(),
+            operation_mode_value,
+            operation_mode_desc,
+            label_state,
         )
-        return FUJITSU_TO_HA_STATE[self._fujitsu_device.get_operation_mode_desc()]
+        return label_state
 
     @property
     def hvac_modes(self) -> list[HVACMode]:
@@ -361,9 +369,33 @@ class FujitsuClimate(
     @property
     def hvac_action(self) -> HVACAction | None:
         """Return the current running hvac operation."""
+        # HVACAction.IDLE is not (yet) managed by underlying pyfujitsugeneral library
         if not self.is_on:
             return HVACAction.OFF
-        return FUJITSU_TO_ACTION_LOOKUP.get(self._fujitsu_device.get_op_status_desc())
+
+        op_status_desc = self._fujitsu_device.get_op_status_desc()
+
+        _LOGGER.debug(
+            "Getting hvac_action on FujitsuClimate device [%s]: [%s]",
+            self._name,
+            op_status_desc,
+        )
+
+        if op_status_desc == "Normal":
+            operation_mode = self._fujitsu_device.get_operation_mode_desc()
+            label_state = FUJITSU_TO_HA_STATE.get(operation_mode)
+
+            return {
+                HVACMode.HEAT: HVACAction.HEATING,
+                HVACMode.COOL: HVACAction.COOLING,
+                HVACMode.DRY: HVACAction.DRYING,
+                HVACMode.FAN_ONLY: HVACAction.FAN,
+            }.get(label_state)
+
+        if op_status_desc == "Defrost":
+            return HVACAction.PREHEATING
+
+        return None
 
     async def async_turn_on(self) -> None:
         """Set the HVAC State to on."""

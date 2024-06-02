@@ -6,9 +6,8 @@ import asyncio
 import logging
 
 from aiohttp import ClientError
-from homeassistant.config_entries import ConfigFlow
+from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_REGION, CONF_TOKEN, CONF_USERNAME
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from pyfujitsugeneral.client import FGLairApiClient
 from pyfujitsugeneral.utils import isBlank
@@ -50,7 +49,7 @@ class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[c
         tokenpath: str,
         temperature_offset: float,
         acquired_token: str,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Register new entry."""
         unique_id = await self.async_set_unique_id(username)
         _LOGGER.debug("Creating unique ID %s", unique_id)
@@ -75,7 +74,7 @@ class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[c
         region: str,
         tokenpath: str,
         temperature_offset: float,
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """Create client."""
         if isBlank(password) or isBlank(region):
             raise ValueError(
@@ -108,7 +107,7 @@ class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[c
 
     async def async_step_user(
         self, user_input: dict | None = None  # type: ignore[type-arg]
-    ) -> FlowResult:
+    ) -> ConfigFlowResult:
         """User initiated config flow."""
         if user_input is None:
             return self.async_show_form(
