@@ -1,5 +1,5 @@
 colorlog==6.8.2
 homeassistant==2024.5.0b1
 pip>=21.0,<24.1
-ruff==0.4.5
+ruff==0.4.7
 pyfujitsugeneral==2.0.20
