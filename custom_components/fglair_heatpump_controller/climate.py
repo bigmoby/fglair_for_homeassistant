@@ -252,10 +252,7 @@ class FujitsuClimate(
         if not hasattr(self._fujitsu_device.get_powerful_mode(), "value"):
             return False
 
-        if self._fujitsu_device.get_powerful_mode()["value"]:
-            return True
-
-        return False
+        return bool(self._fujitsu_device.get_powerful_mode()["value"])
 
     @property
     def current_temperature(self) -> float | None:
@@ -302,9 +299,7 @@ class FujitsuClimate(
     @property
     def is_on(self) -> bool:
         """Return true if on."""
-        if self._fujitsu_device.get_operation_mode()["value"] != 0:
-            return True
-        return False
+        return self._fujitsu_device.get_operation_mode()["value"] != 0
 
     @property
     def hvac_mode(self) -> Any:
