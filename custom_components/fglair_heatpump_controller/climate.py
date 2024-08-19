@@ -217,7 +217,7 @@ class FujitsuClimate(
         self._fan_mode = None
         self._hvac_mode = None
         self._swing_modes: list[str] | None = None
-        self._swing_mode: str = ""
+        self._swing_mode: str | None = None
         self._fan_modes: list[Any] = [
             FAN_AUTO,
             FAN_LOW,
@@ -481,13 +481,16 @@ class FujitsuClimate(
     def swing_mode(self) -> str | None:
         """Return the swing setting."""
         try:
-            # Only returns vertical settings, horizontal setting except for swing ignored
+            # Returns vertical settings, horizontal setting except for swing ignored
             vane_vertical_value = self._fujitsu_device.vane_vertical()
             swing_vertical = self._fujitsu_device.get_af_vertical_swing().get("value")
-            swing_horizontal = self._fujitsu_device.get_af_horizontal_swing().get("value")
+            swing_horizontal = self._fujitsu_device.get_af_horizontal_swing().get(
+                "value"
+            )
 
             _LOGGER.debug(
-                "FujitsuClimate device [%s] vertical swing value: %s, horizontal swing value: %s",
+                "FujitsuClimate device [%s] vertical swing value: %s, horizontal swing"
+                " value: %s",
                 self._name,
                 swing_vertical,
                 swing_horizontal,
@@ -502,13 +505,6 @@ class FujitsuClimate(
 
             self._swing_mode = mode
 
-            _LOGGER.debug(
-                "FujitsuClimate device [%s] mode value: %s",
-                self._name,
-                mode,
-            )
-            return self._swing_mode
-
         except Exception as e:
             _LOGGER.error(
                 "Error occurred while getting swing mode for device [%s]: %s",
@@ -516,13 +512,24 @@ class FujitsuClimate(
                 str(e),
             )
             return None
+        else:
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] mode value: %s",
+                self._name,
+                self._swing_mode,
+            )
+            return self._swing_mode
 
     @property
-    def swing_modes(self) -> list[str] | None:
+    def swing_modes(self) -> Optional[list[str]]:
         """List of available swing modes."""
 
-        vert_pos_list: Optional[list[int]] = self._fujitsu_device.vane_vertical_positions()
-        hori_pos_list: Optional[list[int]] = self._fujitsu_device.vane_horizontal_positions()
+        vert_pos_list: Optional[list[int]] = (
+            self._fujitsu_device.vane_vertical_positions()
+        )
+        hori_pos_list: Optional[list[int]] = (
+            self._fujitsu_device.vane_horizontal_positions()
+        )
         pos_list: list[str] = []
 
         # Add swing modes to the list if supported
@@ -547,7 +554,10 @@ class FujitsuClimate(
 
         # If pos_list is empty, return None instead of an empty list
         if not pos_list:
-            pos_list = None
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] returning swing modes: None", self._name
+            )
+            return None
 
         self._swing_modes = pos_list
 
