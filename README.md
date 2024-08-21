@@ -42,7 +42,7 @@ https://github.com/bigmoby/fglair_for_homeassistant
 
 In Home Assistant->Settings->Device & services->Integration menu add the new integration FGLair and configure it.
 
-Please, use your FGLair app username/password and region your FGLair account is registered (choose one of `region`: `eu`, `cn` or `us`). For `tokenpath` field you could leave the default value `token.txt`. You could set a proper `temperature_offset`, default will be `2`.
+Please, use your FGLair app username/password and region your FGLair account is registered (choose one of `region`: `eu`, `cn` or `us`). For `tokenpath` field you could leave the default value `token.txt`. You could set a proper `temperature_offset`, default will be `0`.
 
 Attention: please, remove from `configuration.yaml` any previous FGLair installation setup.
 
