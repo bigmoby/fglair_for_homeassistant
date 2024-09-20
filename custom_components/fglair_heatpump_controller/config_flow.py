@@ -106,7 +106,8 @@ class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[c
         )
 
     async def async_step_user(
-        self, user_input: dict | None = None  # type: ignore[type-arg]
+        self,
+        user_input: dict | None = None,  # type: ignore[type-arg]
     ) -> ConfigFlowResult:
         """User initiated config flow."""
         if user_input is None:

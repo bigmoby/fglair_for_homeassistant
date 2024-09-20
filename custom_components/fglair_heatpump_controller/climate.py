@@ -530,12 +530,8 @@ class FujitsuClimate(
     def swing_modes(self) -> Optional[list[str]]:
         """List of available swing modes."""
 
-        vert_pos_list: Optional[list[int]] = (
-            self._fujitsu_device.vane_vertical_positions()
-        )
-        hori_pos_list: Optional[list[int]] = (
-            self._fujitsu_device.vane_horizontal_positions()
-        )
+        vert_pos_list = self._fujitsu_device.vane_vertical_positions()
+        hori_pos_list = self._fujitsu_device.vane_horizontal_positions()
         pos_list: list[str] = []
 
         # Add swing modes to the list if supported
