@@ -532,6 +532,7 @@ class FujitsuClimate(
 
         vert_pos_list = self._fujitsu_device.vane_vertical_positions()
         hori_pos_list = self._fujitsu_device.vane_horizontal_positions()
+
         pos_list: list[str] = []
 
         # Add swing modes to the list if supported
