@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "fglair_heatpump_controller"
-version     = "0.3.24"
+version     = "0.3.25"
 license     = {text = "MIT License"}
 description = "FGLair heat pump controller integration"
 readme      = "README.md"
