@@ -3,4 +3,4 @@ homeassistant==2024.5.0b1
 pip>=24.1.2,<24.4
 ruff==0.7.1
 pyfujitsugeneral==2.0.32
-aiofiles==23.2.1
+aiofiles==24.1.0
