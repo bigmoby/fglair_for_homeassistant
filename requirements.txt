@@ -1,6 +1,6 @@
 colorlog==6.9.0
 homeassistant==2024.5.0b1
 pip>=24.1.2,<24.4
-ruff==0.7.4
+ruff==0.8.0
 pyfujitsugeneral==2.0.32
 aiofiles==24.1.0
