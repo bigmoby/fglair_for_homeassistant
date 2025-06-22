@@ -227,13 +227,23 @@ class FujitsuClimate(
             FAN_DIFFUSE,
         ]
         self._hvac_modes: list[HVACMode] = SUPPORTED_MODES
-        self._preset_modes: list[Any] = [
-            PRESET_NONE,
-            PRESET_ECO,
-            PRESET_BOOST,
-            PRESET_AWAY,
-        ]
-        self._on: bool | None = None
+
+    def get_supported_presets(self) -> list[str]:
+        """Return list of supported preset modes dynamically based on device properties."""
+        supported = [PRESET_NONE]  # Always include 'none'
+
+        props = self._properties or {}
+
+        if get_prop_from_json("economy_mode", props):
+            supported.append(PRESET_ECO)
+        if get_prop_from_json("powerful_mode", props):
+            supported.append(PRESET_BOOST)
+        if get_prop_from_json("min_heat", props):
+            supported.append(PRESET_AWAY)
+
+        return supported
+
+
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -412,7 +422,17 @@ class FujitsuClimate(
     async def async_update(self) -> None:
         """Retrieve latest state."""
         _LOGGER.debug("Update FujitsuClimate device by async_update")
+
         self._properties = await self._fujitsu_device.async_update_properties()
+        self._name = self.name  # ensure name is current
+
+        _LOGGER.debug(
+            "FujitsuClimate device [%s] detected supported presets: %s",
+            self._name,
+            self.get_supported_presets(),
+        )
+
+
         self._name = self.name
         self._unique_id = self.unique_id
         self._aux_heat = self.is_aux_heat_on
@@ -437,10 +457,12 @@ class FujitsuClimate(
         self._hvac_modes = SUPPORTED_MODES
         self._preset_modes = [PRESET_NONE, PRESET_ECO, PRESET_BOOST, PRESET_AWAY]
         self._on = self.is_on
+
         _LOGGER.debug(
             "FujitsuClimate finish async_update for device [%s]",
             self.name,
         )
+
 
     async def _async_refresh_display_temperature_request(
         self, refreshed_data_updated_at_str: str
@@ -601,10 +623,11 @@ class FujitsuClimate(
         """Return the preset setting."""
         properties = self._fujitsu_device.get_properties()
 
+        # Check if all preset props are missing
         if (
             not get_prop_from_json("economy_mode", properties)
-            or not get_prop_from_json("powerful_mode", properties)
-            or not get_prop_from_json("min_heat", properties)
+            and not get_prop_from_json("powerful_mode", properties)
+            and not get_prop_from_json("min_heat", properties)
         ):
             _LOGGER.debug(
                 "FujitsuClimate device [%s] has no preset props",
@@ -612,36 +635,42 @@ class FujitsuClimate(
             )
             return PRESET_NONE
 
-        if self._fujitsu_device.get_economy_mode()["value"]:
+        eco_prop = self._fujitsu_device.get_economy_mode()
+        boost_prop = self._fujitsu_device.get_powerful_mode()
+        min_heat_prop = self._fujitsu_device.get_min_heat()
+
+        if eco_prop and eco_prop.get("value"):
             _LOGGER.debug(
                 "FujitsuClimate device [%s] preset eco setting: %s",
                 self._name,
-                self._fujitsu_device.get_economy_mode()["value"],
+                eco_prop.get("value"),
             )
             return PRESET_ECO
 
-        if self._fujitsu_device.get_powerful_mode()["value"]:
+        if boost_prop and boost_prop.get("value"):
             _LOGGER.debug(
                 "FujitsuClimate device [%s] preset boost setting: %s",
                 self._name,
-                self._fujitsu_device.get_powerful_mode()["value"],
+                boost_prop.get("value"),
             )
             return PRESET_BOOST
 
-        if self._fujitsu_device.get_min_heat()["value"]:
+        if min_heat_prop and min_heat_prop.get("value"):
             _LOGGER.debug(
                 "FujitsuClimate device [%s] preset min_heat (or away) setting: %s",
                 self._name,
-                self._fujitsu_device.get_min_heat()["value"],
+                min_heat_prop.get("value"),
             )
             return PRESET_AWAY
 
         return PRESET_NONE
 
+
+
     @property
-    def preset_modes(self) -> list[Any]:
-        """List of available preset modes."""
-        return self._preset_modes
+    def preset_modes(self) -> list[str]:
+        """Return the supported preset modes for this device."""
+        return self.get_supported_presets()
 
     async def async_set_preset_mode(self, preset_mode: Any) -> None:
         """Set preset mode."""
@@ -650,22 +679,56 @@ class FujitsuClimate(
             self._name,
             preset_mode.upper(),
         )
+
+        def has_valid_key(prop):
+            return isinstance(prop, dict) and "key" in prop and prop["key"] is not None
+
         if preset_mode == PRESET_NONE:
-            await self._fujitsu_device.async_economy_mode_off()
-            await self._fujitsu_device.async_powerful_mode_off()
-            await self._fujitsu_device.async_min_heat_mode_off()
+            if has_valid_key(self._fujitsu_device.get_economy_mode()):
+                await self._fujitsu_device.async_economy_mode_off()
+            if has_valid_key(self._fujitsu_device.get_powerful_mode()):
+                await self._fujitsu_device.async_powerful_mode_off()
+            if has_valid_key(self._fujitsu_device.get_min_heat()):
+                await self._fujitsu_device.async_min_heat_mode_off()
+
         elif preset_mode == PRESET_ECO:
-            await self._fujitsu_device.async_powerful_mode_off()
-            await self._fujitsu_device.async_min_heat_mode_off()
-            await self._fujitsu_device.async_economy_mode_on()
+            if has_valid_key(self._fujitsu_device.get_powerful_mode()):
+                await self._fujitsu_device.async_powerful_mode_off()
+            if has_valid_key(self._fujitsu_device.get_min_heat()):
+                await self._fujitsu_device.async_min_heat_mode_off()
+            if has_valid_key(self._fujitsu_device.get_economy_mode()):
+                await self._fujitsu_device.async_economy_mode_on()
+
         elif preset_mode == PRESET_BOOST:
-            await self._fujitsu_device.async_economy_mode_off()
-            await self._fujitsu_device.async_min_heat_mode_off()
-            await self._fujitsu_device.async_powerful_mode_on()
+            if has_valid_key(self._fujitsu_device.get_economy_mode()):
+                await self._fujitsu_device.async_economy_mode_off()
+            if has_valid_key(self._fujitsu_device.get_min_heat()):
+                await self._fujitsu_device.async_min_heat_mode_off()
+            if has_valid_key(self._fujitsu_device.get_powerful_mode()):
+                await self._fujitsu_device.async_powerful_mode_on()
+
         elif preset_mode == PRESET_AWAY:
-            await self._fujitsu_device.async_economy_mode_off()
-            await self._fujitsu_device.async_powerful_mode_off()
-            await self._fujitsu_device.async_min_heat_mode_on()
+            if has_valid_key(self._fujitsu_device.get_economy_mode()):
+                await self._fujitsu_device.async_economy_mode_off()
+            if has_valid_key(self._fujitsu_device.get_powerful_mode()):
+                await self._fujitsu_device.async_powerful_mode_off()
+            if has_valid_key(self._fujitsu_device.get_min_heat()):
+                await self._fujitsu_device.async_min_heat_mode_on()
+
+        # Refresh device properties (to reflect latest mode)
+        await self._fujitsu_device.async_update_properties()
+        self._properties = self._fujitsu_device.get_properties()
+
+        # Also update entity internal state cache and Home Assistant UI
+        await self.async_update()
+
+        _LOGGER.debug(
+            "FujitsuClimate device [%s] preset mode set and updated",
+            self._name,
+        )
+
+
+
 
     # ===> old stuff
 
@@ -698,3 +761,4 @@ class FujitsuClimate(
     def supported_features(self) -> Any:
         """Return the list of supported features."""
         return SUPPORT_FLAGS
+    
