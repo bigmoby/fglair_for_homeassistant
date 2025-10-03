@@ -38,7 +38,7 @@ https://github.com/bigmoby/fglair_for_homeassistant
 
 3. Reboot Home Assistant.
 
-### Usage:
+## Usage:
 
 In Home Assistant->Settings->Device & services->Integration menu add the new integration FGLair and configure it.
 
@@ -47,6 +47,81 @@ Please, use your FGLair app username/password and region your FGLair account is 
 Attention: please, remove from `configuration.yaml` any previous FGLair installation setup.
 
 Note for A/C units with horizontal swing support, the horizontal swing and position can be changed but only the vertical position will be shown due to limitations with Home Assistant's climate entity.
+
+## Develop
+
+### Quick Start
+
+Setup the development environment:
+
+```bash
+make setup
+```
+
+Or manually:
+
+```bash
+./scripts/setup
+```
+
+### Available Commands
+
+Use the Makefile for common development tasks:
+
+```bash
+make help          # Show all available commands
+make setup         # Setup development environment
+make test          # Run tests
+make test-coverage # Run tests with coverage report
+make lint          # Run linting tools
+make format        # Format code
+make check         # Run all checks (lint + test)
+make clean         # Clean up temporary files
+make install-dev   # Install in development mode
+make develop       # Start development server
+make ci            # Run CI pipeline locally
+```
+
+### Manual Commands
+
+Activate virtual environment:
+
+```bash
+source venv/bin/activate
+```
+
+Run tests:
+
+```bash
+python -m pytest tests/ -v
+```
+
+Run linting:
+
+```bash
+pre-commit run --all-files
+```
+
+Start development server:
+
+```bash
+./scripts/develop
+```
+
+### Dependencies Structure
+
+- `requirements.txt` - Core runtime dependencies
+- `requirements.test.txt` - Testing and development dependencies
+- `pyproject.toml` - Project metadata and optional dependencies
+
+The project uses:
+
+- **pyfujitsugeneral==2.0.33** - Core API client for FGLair
+- **aiofiles==24.1.0** - Async file operations
+- **pytest-homeassistant-custom-component** - Testing framework for HA integrations
+- **ruff** - Fast Python linter and formatter
+- **mypy** - Static type checker
+- **pre-commit** - Git hooks for code quality
 
 ## Known issues and missing features:
 

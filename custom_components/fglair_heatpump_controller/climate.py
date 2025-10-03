@@ -2,7 +2,7 @@
 
 from datetime import datetime
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from homeassistant.components.climate import (
     PLATFORM_SCHEMA,
@@ -76,7 +76,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Optional("region"): cv.string,
+        vol.Optional(CONF_REGION): cv.string,
         vol.Optional("tokenpath", default=DEFAULT_TOKEN_PATH): cv.string,
         vol.Optional("temperature_offset", default=DEFAULT_TEMPERATURE_OFFSET): vol.All(
             vol.Coerce(float), vol.Range(min=-5, max=5)
@@ -177,9 +177,8 @@ async def async_setup_entry(
     async_add_entities(entities, update_before_add=True)
 
 
-class FujitsuClimate(
-    CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEntity
-):  # pylint: disable=R0902,R0904,R0913
+class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEntity):
+    # pylint: disable=R0902,R0904,R0913
     """Representation of a Fujitsu HVAC device."""
 
     _enable_turn_on_off_backwards_compatibility = False
@@ -229,10 +228,10 @@ class FujitsuClimate(
         self._hvac_modes: list[HVACMode] = SUPPORTED_MODES
 
     def get_supported_presets(self) -> list[str]:
-        """Return list of supported preset modes dynamically based on device properties."""
+        """Return list of supported preset modes based on device properties."""
         supported = [PRESET_NONE]  # Always include 'none'
 
-        props = self._properties or {}
+        props: dict[str, Any] = self._properties or {}
 
         if get_prop_from_json("economy_mode", props):
             supported.append(PRESET_ECO)
@@ -242,8 +241,6 @@ class FujitsuClimate(
             supported.append(PRESET_AWAY)
 
         return supported
-
-
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -432,7 +429,6 @@ class FujitsuClimate(
             self.get_supported_presets(),
         )
 
-
         self._name = self.name
         self._unique_id = self.unique_id
         self._aux_heat = self.is_aux_heat_on
@@ -462,7 +458,6 @@ class FujitsuClimate(
             "FujitsuClimate finish async_update for device [%s]",
             self.name,
         )
-
 
     async def _async_refresh_display_temperature_request(
         self, refreshed_data_updated_at_str: str
@@ -549,7 +544,7 @@ class FujitsuClimate(
             return self._swing_mode
 
     @property
-    def swing_modes(self) -> Optional[list[str]]:
+    def swing_modes(self) -> list[str] | None:
         """List of available swing modes."""
 
         vert_pos_list = self._fujitsu_device.vane_vertical_positions()
@@ -665,8 +660,6 @@ class FujitsuClimate(
 
         return PRESET_NONE
 
-
-
     @property
     def preset_modes(self) -> list[str]:
         """Return the supported preset modes for this device."""
@@ -727,9 +720,6 @@ class FujitsuClimate(
             self._name,
         )
 
-
-
-
     # ===> old stuff
 
     @property
@@ -761,4 +751,3 @@ class FujitsuClimate(
     def supported_features(self) -> Any:
         """Return the list of supported features."""
         return SUPPORT_FLAGS
-    

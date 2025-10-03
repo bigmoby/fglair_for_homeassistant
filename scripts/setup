@@ -4,4 +4,24 @@ set -e
 
 cd "$(dirname "$0")/.."
 
-python3 -m pip install --requirement requirements.txt
+if [ ! -n "$VIRTUAL_ENV" ]; then
+  if [ -x "$(command -v uv)" ]; then
+    uv venv venv
+  else
+    python -m venv venv
+  fi
+  source venv/bin/activate
+  python -m ensurepip --upgrade
+fi
+
+if ! [ -x "$(command -v uv)" ]; then
+  python -m pip install uv
+fi
+
+# Install core dependencies
+python -m pip install --requirement requirements.txt
+
+# Install test and development dependencies
+python -m pip install --requirement requirements.test.txt
+
+pre-commit install

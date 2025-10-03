@@ -14,5 +14,6 @@
     "files.trimTrailingWhitespace": true,
     "cSpell.words": [
         "pyfujitsugeneral"
-    ]
+    ],
+    "cursorpyright.analysis.autoSearchPaths": false
 }
