@@ -17,5 +17,5 @@
   "requirements": [
     "pyfujitsugeneral==2.0.33", "aiofiles==24.1.0"
   ],
-  "version": "0.3.26"
+  "version": "0.3.27"
 }
