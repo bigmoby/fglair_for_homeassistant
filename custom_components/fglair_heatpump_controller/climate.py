@@ -2,7 +2,7 @@
 
 from datetime import datetime
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from homeassistant.components.climate import (
     PLATFORM_SCHEMA,
@@ -544,7 +544,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             return self._swing_mode
 
     @property
-    def swing_modes(self) -> Optional[list[str]]:
+    def swing_modes(self) -> list[str] | None:
         """List of available swing modes."""
 
         vert_pos_list = self._fujitsu_device.vane_vertical_positions()
