@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+find ${PWD}/custom_components -type d -name '__pycache__' -exec rm -r {} +
+
+find ${PWD}/tests -type d -name '__pycache__' -exec rm -r {} +
+
+find ${PWD}/tests -type d -name '.ruff_cache' -exec rm -r {} +
+
+find ${PWD} -type d -name '.mypy_cache' -exec rm -r {} +
+
+find ${PWD} -type d -name '.pytest_cache' -exec rm -r {} +
+
+find ${PWD} -type d -name '.ruff_cache' -exec rm -r {} +

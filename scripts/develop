@@ -16,7 +16,7 @@ fi
 ## without resulting to symlinks.
 export PYTHONPATH="${PYTHONPATH}:${PWD}/custom_components"
 
-rm -rfv ${PYTHONPATH}/fglair_for_homeassistant/__pycache__
+./scripts/clean
 
 # Start Home Assistant
 hass --config "${PWD}/config" --debug

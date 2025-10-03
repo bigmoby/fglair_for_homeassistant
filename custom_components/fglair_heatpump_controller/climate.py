@@ -76,7 +76,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
-        vol.Optional("region"): cv.string,
+        vol.Optional(CONF_REGION): cv.string,
         vol.Optional("tokenpath", default=DEFAULT_TOKEN_PATH): cv.string,
         vol.Optional("temperature_offset", default=DEFAULT_TEMPERATURE_OFFSET): vol.All(
             vol.Coerce(float), vol.Range(min=-5, max=5)
@@ -177,9 +177,8 @@ async def async_setup_entry(
     async_add_entities(entities, update_before_add=True)
 
 
-class FujitsuClimate(
-    CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEntity
-):  # pylint: disable=R0902,R0904,R0913
+class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEntity):
+    # pylint: disable=R0902,R0904,R0913
     """Representation of a Fujitsu HVAC device."""
 
     _enable_turn_on_off_backwards_compatibility = False
