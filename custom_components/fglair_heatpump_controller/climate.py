@@ -805,11 +805,11 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         elif swing_mode == SWING_BOTH:
             await self._fujitsu_device.async_set_af_vertical_swing(1)
             await self._fujitsu_device.async_set_af_horizontal_swing(1)
-        elif swing_mode[0:9] == VERTICAL:
+        elif isinstance(swing_mode, str) and swing_mode.startswith(VERTICAL):
             await self._fujitsu_device.async_set_vane_vertical_position(
                 int(swing_mode[-1])
             )
-        elif swing_mode[0:11] == HORIZONTAL:
+        elif isinstance(swing_mode, str) and swing_mode.startswith(HORIZONTAL):
             await self._fujitsu_device.async_set_vane_horizontal_position(
                 int(swing_mode[-1])
             )
@@ -877,7 +877,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         _LOGGER.debug(
             "FujitsuClimate device [%s] preset choice: %s",
             self._name,
-            preset_mode.upper(),
+            str(preset_mode).upper(),
         )
 
         def has_valid_key(prop):
