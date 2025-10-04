@@ -762,6 +762,10 @@ async def test_current_preset_mode_away() -> None:
     ) as mock_get_prop:
         mock_get_prop.return_value = True
 
+        # Test current preset mode
+        preset_mode = climate.preset_mode
+        assert preset_mode == PRESET_AWAY
+
 
 @pytest.mark.asyncio  # type: ignore[misc]
 async def test_hvac_action_return_none() -> None:

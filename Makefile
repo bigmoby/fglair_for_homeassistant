@@ -56,6 +56,8 @@ clean: ## Clean up temporary files
 	@find . -type d -name "*.egg-info" -exec rm -rf {} +
 	@rm -rf build/
 	@rm -rf dist/
+	@rm -rf .coverage
+	@rm -rf htmlcov/
 
 install-dev: ## Install in development mode
 	@echo "📦 Installing in development mode..."
