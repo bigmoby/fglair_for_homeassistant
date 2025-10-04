@@ -45,7 +45,7 @@ repos:
         always_run: true
       - id: pytest-coverage
         name: pytest-coverage
-        entry: bash -c "source venv/bin/activate && python3 -m pytest tests/ -v --cov=custom_components.fglair_heatpump_controller --cov-report=term-missing --cov-fail-under=57"
+        entry: bash -c "source venv/bin/activate && python3 -m pytest tests/ -v --cov=custom_components.fglair_heatpump_controller --cov-report=term-missing --cov-fail-under=62"
         language: system
         pass_filenames: false
         always_run: true
