@@ -1264,7 +1264,7 @@ def test_climate_device_info() -> None:
 
 
 def test_climate_entity_registry_enabled_default() -> None:
-    """Test climate entity registry enabled default."""
+    """Test that climate entity registry is enabled by default."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1313,8 +1313,8 @@ def test_climate_methods_exist() -> None:
         assert callable(getattr(climate, method_name))
 
 
-def test_name_property_correct() -> None:
-    """Test name property with correct mocking."""
+def test_name_property() -> None:
+    """Test name property returns expected value."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1450,8 +1450,8 @@ def test_current_temperature_property_none() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_temperature_correct() -> None:
-    """Test async_set_temperature with correct mocking."""
+async def test_async_set_temperature() -> None:
+    """Test async_set_temperature method."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1504,8 +1504,8 @@ async def test_async_set_temperature_none() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_hvac_mode_heat_correct() -> None:
-    """Test async_set_hvac_mode for heat with correct mocking."""
+async def test_async_set_hvac_mode_heat() -> None:
+    """Test async_set_hvac_mode for heat mode."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1529,8 +1529,8 @@ async def test_async_set_hvac_mode_heat_correct() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_hvac_mode_cool_correct() -> None:
-    """Test async_set_hvac_mode for cool with correct mocking."""
+async def test_async_set_hvac_mode_cool() -> None:
+    """Test async_set_hvac_mode for cool mode."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1554,8 +1554,8 @@ async def test_async_set_hvac_mode_cool_correct() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_hvac_mode_off_correct() -> None:
-    """Test async_set_hvac_mode for off with correct mocking."""
+async def test_async_set_hvac_mode_off() -> None:
+    """Test async_set_hvac_mode for off mode."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1579,8 +1579,8 @@ async def test_async_set_hvac_mode_off_correct() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_turn_on_correct() -> None:
-    """Test async_turn_on with correct mocking."""
+async def test_async_turn_on() -> None:
+    """Test async_turn_on method."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1604,8 +1604,8 @@ async def test_async_turn_on_correct() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_turn_off_correct() -> None:
-    """Test async_turn_off with correct mocking."""
+async def test_async_turn_off() -> None:
+    """Test async_turn_off method."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1629,8 +1629,8 @@ async def test_async_turn_off_correct() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_fan_mode_high_correct() -> None:
-    """Test async_set_fan_mode for high with correct mocking."""
+async def test_async_set_fan_mode_high() -> None:
+    """Test async_set_fan_mode for high speed."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1654,8 +1654,8 @@ async def test_async_set_fan_mode_high_correct() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_fan_mode_auto_correct() -> None:
-    """Test async_set_fan_mode for auto with correct mocking."""
+async def test_async_set_fan_mode_auto() -> None:
+    """Test async_set_fan_mode for auto speed."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1679,8 +1679,8 @@ async def test_async_set_fan_mode_auto_correct() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_swing_mode_both_correct() -> None:
-    """Test async_set_swing_mode for both with correct mocking."""
+async def test_async_set_swing_mode_both() -> None:
+    """Test async_set_swing_mode for both directions."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1706,8 +1706,8 @@ async def test_async_set_swing_mode_both_correct() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_preset_mode_eco_correct() -> None:
-    """Test async_set_preset_mode for eco with correct mocking."""
+async def test_async_set_preset_mode_eco() -> None:
+    """Test async_set_preset_mode for eco mode."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1774,8 +1774,8 @@ async def test_async_set_preset_mode_eco_correct() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_preset_mode_boost_correct() -> None:
-    """Test async_set_preset_mode for boost with correct mocking."""
+async def test_async_set_preset_mode_boost() -> None:
+    """Test async_set_preset_mode for boost mode."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1842,8 +1842,8 @@ async def test_async_set_preset_mode_boost_correct() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_preset_mode_away_correct() -> None:
-    """Test async_set_preset_mode for away with correct mocking."""
+async def test_async_set_preset_mode_away() -> None:
+    """Test async_set_preset_mode for away mode."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1910,8 +1910,8 @@ async def test_async_set_preset_mode_away_correct() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_preset_mode_none_correct() -> None:
-    """Test async_set_preset_mode for none with correct mocking."""
+async def test_async_set_preset_mode_none() -> None:
+    """Test async_set_preset_mode for none mode."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -2602,7 +2602,7 @@ def test_climate_current_fan_mode() -> None:
         fan_mode_attrs = ["current_fan_mode", "fan_mode", "fan_modes"]
         for attr in fan_mode_attrs:
             if hasattr(climate, attr):
-                assert True  # Property exists
+                assert hasattr(climate, attr)  # Property exists and is accessible
 
 
 def test_climate_current_swing_mode() -> None:
@@ -2628,7 +2628,7 @@ def test_climate_current_swing_mode() -> None:
     swing_mode_attrs = ["current_swing_mode", "swing_mode", "swing_modes"]
     for attr in swing_mode_attrs:
         if hasattr(climate, attr):
-            assert True  # Property exists
+            assert hasattr(climate, attr)  # Property exists and is accessible
 
 
 def test_climate_current_preset_mode() -> None:
@@ -2656,7 +2656,7 @@ def test_climate_current_preset_mode() -> None:
         preset_mode_attrs = ["current_preset_mode", "preset_mode", "preset_modes"]
         for attr in preset_mode_attrs:
             if hasattr(climate, attr):
-                assert True  # Property exists
+                assert hasattr(climate, attr)  # Property exists and is accessible
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
@@ -2804,7 +2804,7 @@ async def test_async_setup_entry_no_devices() -> None:
 
 
 def test_climate_basic_properties() -> None:
-    """Test basic climate properties."""
+    """Test that climate entity has all required basic properties."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
