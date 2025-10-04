@@ -656,6 +656,22 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
     def swing_horizontal_mode(self) -> str | None:
         """Return the horizontal swing setting."""
         try:
+            # First check if the device supports horizontal swing at all
+            modes_list = self._fujitsu_device.get_swing_modes_supported()
+            # Handle both string and list return types
+            if isinstance(modes_list, list):
+                modes_str = " ".join(modes_list).lower()
+            else:
+                modes_str = str(modes_list).lower() if modes_list else ""
+
+            # If device doesn't support horizontal swing, return None
+            if not modes_list or "horizontal" not in modes_str:
+                _LOGGER.debug(
+                    "FujitsuClimate device [%s] does not support horizontal swing",
+                    self._name,
+                )
+                return None
+
             swing_horizontal = self._fujitsu_device.get_swing_horizontal_value()
             _LOGGER.debug(
                 "FujitsuClimate device [%s] horizontal swing value: %s",
@@ -665,7 +681,22 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             if swing_horizontal:
                 mode = SWING_HORIZONTAL
             else:
-                mode = None
+                # When horizontal swing is off, try to get the current horizontal
+                # position. This is consistent with how swing_mode handles vertical
+                # positions
+                try:
+                    # Try to get current horizontal position if available
+                    # Note: This assumes there's a method to get current horizontal
+                    # position. If not available, we'll fall back to None
+                    if hasattr(self._fujitsu_device, "vane_horizontal"):
+                        vane_horizontal_value = self._fujitsu_device.vane_horizontal()
+                        mode = HORIZONTAL + str(vane_horizontal_value)
+                    else:
+                        # Fallback: return None if no method to get current position
+                        mode = None
+                except Exception:
+                    # If we can't get the current position, return None
+                    mode = None
             self._swing_horizontal_mode = mode
             _LOGGER.debug(
                 "FujitsuClimate device [%s] horizontal swing mode: %s",
@@ -806,13 +837,37 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             await self._fujitsu_device.async_set_af_vertical_swing(1)
             await self._fujitsu_device.async_set_af_horizontal_swing(1)
         elif isinstance(swing_mode, str) and swing_mode.startswith(VERTICAL):
-            await self._fujitsu_device.async_set_vane_vertical_position(
-                int(swing_mode[-1])
-            )
+            # Extract the position number after "Vertical"
+            position_str = swing_mode[len(VERTICAL) :]
+            try:
+                position = int(position_str)
+                await self._fujitsu_device.async_set_vane_vertical_position(position)
+            except ValueError as ex:
+                _LOGGER.error(
+                    "Invalid vertical position '%s' for device [%s]: %s",
+                    position_str,
+                    self._name,
+                    ex,
+                )
+                raise HomeAssistantError(
+                    f"Invalid vertical position: {position_str}"
+                ) from ex
         elif isinstance(swing_mode, str) and swing_mode.startswith(HORIZONTAL):
-            await self._fujitsu_device.async_set_vane_horizontal_position(
-                int(swing_mode[-1])
-            )
+            # Extract the position number after "Horizontal"
+            position_str = swing_mode[len(HORIZONTAL) :]
+            try:
+                position = int(position_str)
+                await self._fujitsu_device.async_set_vane_horizontal_position(position)
+            except ValueError as ex:
+                _LOGGER.error(
+                    "Invalid horizontal position '%s' for device [%s]: %s",
+                    position_str,
+                    self._name,
+                    ex,
+                )
+                raise HomeAssistantError(
+                    f"Invalid horizontal position: {position_str}"
+                ) from ex
         _LOGGER.debug(
             "FujitsuClimate device [%s] swing choice [%s]",
             self._name,

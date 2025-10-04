@@ -3178,6 +3178,7 @@ def test_swing_horizontal_mode_property() -> None:
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
     mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
     mock_device.get_swing_horizontal_value.return_value = True
     mock_client.get_device.return_value = mock_device
 
@@ -3201,7 +3202,10 @@ def test_swing_horizontal_mode_property_none() -> None:
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
     mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
     mock_device.get_swing_horizontal_value.return_value = False
+    # Mock that device doesn't have vane_horizontal method
+    mock_device.vane_horizontal = None
     mock_client.get_device.return_value = mock_device
 
     climate = FujitsuClimate(
@@ -3219,12 +3223,15 @@ def test_swing_horizontal_mode_property_none() -> None:
     assert swing_horizontal_mode is None
 
 
-def test_swing_horizontal_mode_property_exception() -> None:
-    """Test swing_horizontal_mode property with exception."""
+def test_swing_horizontal_mode_property_no_vane_horizontal() -> None:
+    """Test swing_horizontal_mode when device doesn't have vane_horizontal method."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
     mock_device = MagicMock()
-    mock_device.get_swing_horizontal_value.side_effect = Exception("API Error")
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.get_swing_horizontal_value.return_value = False
+    # Create a mock device that doesn't have vane_horizontal attribute
+    del mock_device.vane_horizontal
     mock_client.get_device.return_value = mock_device
 
     climate = FujitsuClimate(
@@ -3240,6 +3247,154 @@ def test_swing_horizontal_mode_property_exception() -> None:
 
     swing_horizontal_mode = climate.swing_horizontal_mode
     assert swing_horizontal_mode is None
+
+
+def test_swing_horizontal_mode_property_fixed_position() -> None:
+    """Test swing_horizontal_mode when swing is off but device has fixed position."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.get_swing_horizontal_value.return_value = False
+    mock_device.vane_horizontal.return_value = 3  # Fixed position 3
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_mode = climate.swing_horizontal_mode
+    assert swing_horizontal_mode == "Horizontal_3"
+
+
+def test_swing_horizontal_mode_property_not_supported() -> None:
+    """Test swing_horizontal_mode when device doesn't support horizontal swing."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = [
+        "vertical"
+    ]  # Only vertical support
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_mode = climate.swing_horizontal_mode
+    assert swing_horizontal_mode is None
+
+
+def test_swing_horizontal_mode_property_main_exception() -> None:
+    """Test swing_horizontal_mode with main exception in get_swing_modes_supported."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.side_effect = Exception("Main API Error")
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_mode = climate.swing_horizontal_mode
+    assert swing_horizontal_mode is None
+
+
+def test_swing_horizontal_mode_property_vane_horizontal_exception() -> None:
+    """Test swing_horizontal_mode property when vane_horizontal raises exception."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.get_swing_horizontal_value.return_value = False
+    mock_device.vane_horizontal.side_effect = Exception("Vane error")
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_mode = climate.swing_horizontal_mode
+    assert swing_horizontal_mode is None
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_mode_invalid_vertical_position() -> None:
+    """Test async_set_swing_mode with invalid vertical position."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_device_name.return_value = {"value": "Test Device"}
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    # Test with invalid vertical position (non-numeric)
+    with pytest.raises(HomeAssistantError, match="Invalid vertical position: abc"):
+        await climate.async_set_swing_mode("Vertical_abc")
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_mode_invalid_horizontal_position() -> None:
+    """Test async_set_swing_mode with invalid horizontal position."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_device_name.return_value = {"value": "Test Device"}
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    # Test with invalid horizontal position (non-numeric)
+    with pytest.raises(HomeAssistantError, match="Invalid horizontal position: xyz"):
+        await climate.async_set_swing_mode("Horizontal_xyz")
 
 
 def test_swing_horizontal_modes_property_supported() -> None:
