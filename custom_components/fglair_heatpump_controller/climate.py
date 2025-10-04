@@ -749,7 +749,9 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
                 await _async_retry_api_call(
                     lambda: self._fujitsu_device.async_set_af_horizontal_swing(1)
                 )
-            elif swing_horizontal_mode.startswith(HORIZONTAL):
+            elif isinstance(
+                swing_horizontal_mode, str
+            ) and swing_horizontal_mode.startswith(HORIZONTAL):
                 # Extract the position number after "Horizontal"
                 position_str = swing_horizontal_mode[len(HORIZONTAL) :]
                 try:
