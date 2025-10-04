@@ -162,9 +162,8 @@ async def test_create_client_connection_error() -> None:
     mock_client = AsyncMock()
     mock_client.async_authenticate.side_effect = ConnectionError("Connection failed")
 
-    # ConnectionError is not handled in the current code, so it will raise
+    # ConnectionError is now handled consistently with other connection errors
     with (
-        pytest.raises(ConnectionError, match="Connection failed"),
         patch(
             "custom_components.fglair_heatpump_controller.config_flow.FGLairApiClient",
             return_value=mock_client,
@@ -175,13 +174,15 @@ async def test_create_client_connection_error() -> None:
             return_value=MagicMock(),
         ),
     ):
-        await handler._create_client(
+        result = await handler._create_client(
             username="test_user",
             password="test_pass",
             region="eu",
             tokenpath="/test/path",
             temperature_offset=1.0,
         )
+        assert result["type"] == "abort"
+        assert result["reason"] == "cannot_connect"
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
