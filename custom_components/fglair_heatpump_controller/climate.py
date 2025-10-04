@@ -247,6 +247,8 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         self._hvac_mode = None
         self._swing_modes: list[str] | None = None
         self._swing_mode: str | None = None
+        self._swing_horizontal_modes: list[str] | None = None
+        self._swing_horizontal_mode: str | None = None
         self._fan_modes: list[Any] = [
             FAN_AUTO,
             FAN_LOW,
@@ -500,6 +502,8 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         self._hvac_mode = self.hvac_mode
         self._swing_modes = self.swing_modes
         self._swing_mode = self.swing_mode
+        self._swing_horizontal_modes = self.swing_horizontal_modes
+        self._swing_horizontal_mode = self.swing_horizontal_mode
         self._fan_modes = [
             FAN_AUTO,
             FAN_LOW,
@@ -647,6 +651,116 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         )
 
         return self._swing_modes
+
+    @property
+    def swing_horizontal_mode(self) -> str | None:
+        """Return the horizontal swing setting."""
+        try:
+            swing_horizontal = self._fujitsu_device.get_swing_horizontal_value()
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] horizontal swing value: %s",
+                self._name,
+                swing_horizontal,
+            )
+            if swing_horizontal:
+                mode = SWING_HORIZONTAL
+            else:
+                mode = None
+            self._swing_horizontal_mode = mode
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] horizontal swing mode: %s",
+                self._name,
+                self._swing_horizontal_mode,
+            )
+        except Exception as ex:
+            _LOGGER.error(
+                "Error getting horizontal swing mode for device [%s]: %s",
+                self._name,
+                ex,
+            )
+            return None
+        else:
+            return self._swing_horizontal_mode
+
+    @property
+    def swing_horizontal_modes(self) -> list[str] | None:
+        """List of available horizontal swing modes."""
+        try:
+            pos_list: list[str] = []
+            modes_list = self._fujitsu_device.get_swing_modes_supported()
+            if modes_list and "horizontal" in modes_list:
+                pos_list.append(SWING_HORIZONTAL)
+                try:
+                    horizontal_positions = (
+                        self._fujitsu_device.get_horizontal_positions()
+                    )
+                    if horizontal_positions:
+                        # PERF401: usare una list comprehension
+                        pos_list.extend(
+                            [f"{HORIZONTAL}{pos}" for pos in horizontal_positions]
+                        )
+                except Exception:
+                    pass
+            if not pos_list:
+                _LOGGER.debug(
+                    "Device [%s] does not support horizontal swing modes",
+                    self._name,
+                )
+                return None
+            self._swing_horizontal_modes = pos_list
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] returning horizontal swing modes [%s]",
+                self._name,
+                self._swing_horizontal_modes,
+            )
+        except Exception as ex:
+            _LOGGER.error(
+                "Error getting horizontal swing modes for device [%s]: %s",
+                self._name,
+                ex,
+            )
+            return None
+        else:
+            return self._swing_horizontal_modes
+
+    async def async_set_swing_horizontal_mode(self, swing_horizontal_mode: Any) -> None:
+        """Set new target horizontal swing."""
+        try:
+            modes_list = self._fujitsu_device.get_swing_modes_supported()
+            if not modes_list or "horizontal" not in modes_list:
+                _LOGGER.warning(
+                    "FujitsuClimate device [%s] does not support horizontal swing mode",
+                    self._name,
+                )
+                return
+            if swing_horizontal_mode == SWING_HORIZONTAL:
+                await _async_retry_api_call(
+                    lambda: self._fujitsu_device.async_set_af_horizontal_swing(1)
+                )
+            elif swing_horizontal_mode[0:11] == HORIZONTAL:
+                await _async_retry_api_call(
+                    lambda: self._fujitsu_device.async_set_vane_horizontal_position(
+                        int(swing_horizontal_mode[-1])
+                    )
+                )
+            else:
+                await _async_retry_api_call(
+                    lambda: self._fujitsu_device.async_set_af_horizontal_swing(0)
+                )
+            _LOGGER.debug(
+                "FujitsuClimate device [%s] horizontal swing choice [%s]",
+                self._name,
+                swing_horizontal_mode,
+            )
+        except Exception as ex:
+            _LOGGER.error(
+                "Error setting horizontal swing mode for device [%s]: %s",
+                self._name,
+                ex,
+            )
+            raise HomeAssistantError(
+                f"Failed to set horizontal swing mode: {ex}"
+            ) from ex
 
     async def async_set_swing_mode(self, swing_mode: Any) -> None:
         """Set new target swing."""
@@ -810,4 +924,24 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
     @property
     def supported_features(self) -> Any:
         """Return the list of supported features."""
-        return SUPPORT_FLAGS
+        features = SUPPORT_FLAGS
+        try:
+            modes_list = self._fujitsu_device.get_swing_modes_supported()
+            if modes_list and "horizontal" in modes_list:
+                features |= ClimateEntityFeature.SWING_HORIZONTAL_MODE
+                _LOGGER.debug(
+                    "FujitsuClimate device [%s] supports horizontal swing mode",
+                    self._name,
+                )
+            else:
+                _LOGGER.debug(
+                    "FujitsuClimate device [%s] does not support horizontal swing mode",
+                    self._name,
+                )
+        except Exception as ex:
+            _LOGGER.debug(
+                "Device [%s] error checking horizontal swing support: %s",
+                self._name,
+                ex,
+            )
+        return features
