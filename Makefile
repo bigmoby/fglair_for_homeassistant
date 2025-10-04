@@ -1,6 +1,6 @@
 # Makefile for FGLair Home Assistant Integration
 
-.PHONY: help setup test lint format clean install-dev
+.PHONY: help setup test test-coverage lint format clean install-dev
 
 help: ## Show this help message
 	@echo "Available commands:"
@@ -10,22 +10,44 @@ setup: ## Setup development environment
 	@echo "🚀 Setting up development environment..."
 	@./scripts/setup
 
-test: ## Run tests
-	@echo "🧪 Running tests..."
-	@bash -c "source venv/bin/activate && python -m pytest tests/ -v"
+test: ## Run all tests
+	@echo "🧪 Running all tests..."
+	@bash -c "source venv/bin/activate && python3 -m pytest tests/ -v"
 
 test-coverage: ## Run tests with coverage
 	@echo "🧪 Running tests with coverage..."
-	@bash -c "source venv/bin/activate && python -m pytest tests/ --cov=custom_components/fglair_heatpump_controller --cov-report=html --cov-report=term"
+	@bash -c "source venv/bin/activate && python3 -m pytest tests/ -v --cov=custom_components.fglair_heatpump_controller --cov-report=term-missing"
 
-lint: ## Run linting tools
-	@echo "🔍 Running linting..."
-	@bash -c "source venv/bin/activate && pre-commit run --all-files"
+
+lint-ruff: ## Run ruff linting
+	@echo "🔍 Running ruff linting..."
+	@bash -c "source venv/bin/activate && python3 -m ruff check custom_components/fglair_heatpump_controller/"
+
+lint-mypy: ## Run mypy type checking
+	@echo "🔍 Running mypy type checking..."
+	@bash -c "source venv/bin/activate && python3 -m mypy custom_components/fglair_heatpump_controller/"
 
 format: ## Format code
 	@echo "✨ Formatting code..."
-	@bash -c "source venv/bin/activate && ruff format ."
-	@bash -c "source venv/bin/activate && ruff check --fix ."
+	@bash -c "source venv/bin/activate && python3 -m ruff format custom_components/fglair_heatpump_controller/"
+	@bash -c "source venv/bin/activate && python3 -m ruff check --fix custom_components/fglair_heatpump_controller/"
+
+format-ruff: ## Format code with ruff
+	@echo "✨ Formatting code with ruff..."
+	@bash -c "source venv/bin/activate && python3 -m ruff format custom_components/fglair_heatpump_controller/"
+	@bash -c "source venv/bin/activate && python3 -m ruff check --fix custom_components/fglair_heatpump_controller/"
+
+pre-commit-install: ## Install pre-commit hooks
+	@echo "🔧 Installing pre-commit hooks..."
+	@bash -c "source venv/bin/activate && pre-commit install"
+
+pre-commit-uninstall: ## Uninstall pre-commit hooks
+	@echo "🔧 Uninstalling pre-commit hooks..."
+	@bash -c "source venv/bin/activate && pre-commit uninstall"
+
+pre-commit-run: ## Run pre-commit on all files
+	@echo "🔧 Running pre-commit on all files..."
+	@bash -c "source venv/bin/activate && pre-commit run --all-files"
 
 clean: ## Clean up temporary files
 	@echo "🧹 Cleaning up..."

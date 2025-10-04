@@ -16,6 +16,10 @@ repos:
         args: ["--unsafe"]
       - id: end-of-file-fixer
       - id: trailing-whitespace
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+      - id: check-merge-conflict
+      - id: check-case-conflict
   - repo: https://github.com/pycqa/flake8
     rev: 6.1.0
     hooks:
@@ -31,3 +35,17 @@ repos:
         language_version: python3.12
         additional_dependencies:
           - "pydantic>=1.10.12"
+  - repo: local
+    hooks:
+      - id: pytest
+        name: pytest
+        entry: python3 -m pytest tests/ -v
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: pytest-coverage
+        name: pytest-coverage
+        entry: python3 -m pytest tests/ -v --cov=custom_components.fglair_heatpump_controller --cov-report=term-missing --cov-fail-under=100
+        language: system
+        pass_filenames: false
+        always_run: true

@@ -80,9 +80,34 @@ make clean         # Clean up temporary files
 make install-dev   # Install in development mode
 make develop       # Start development server
 make ci            # Run CI pipeline locally
+
+# Pre-commit system
+make pre-commit-install          # Install pre-commit hooks
+make pre-commit-uninstall        # Uninstall pre-commit hooks
+make pre-commit-run              # Run pre-commit on all files
 ```
 
-### Manual Commands
+### Development Tools
+
+This project includes development tools for code quality and testing:
+
+#### Pre-Commit Hooks
+
+Install pre-commit hooks to automatically run checks before commits:
+
+```bash
+make pre-commit-install  # Install pre-commit hooks
+```
+
+The pre-commit configuration includes:
+
+- ✅ Code formatting with ruff
+- ✅ Linting with ruff and flake8
+- ✅ Type checking with mypy
+- ✅ Test execution with pytest
+- ✅ Coverage checking (minimum 100%)
+
+#### Manual Commands
 
 Activate virtual environment:
 
