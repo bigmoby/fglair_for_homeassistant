@@ -3,6 +3,7 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.components.climate.const import (
+    PRESET_AWAY,
     PRESET_BOOST,
     PRESET_ECO,
     PRESET_NONE,
@@ -664,5 +665,114 @@ async def test_preset_mode_return_none() -> None:
         mock_get_prop.return_value = False
 
         # Test current preset mode
+        preset_mode = climate.preset_mode
+        assert preset_mode == PRESET_NONE
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_swing_mode_both_active() -> None:
+    """Test swing mode when both vertical and horizontal swing are active."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock swing mode methods - both active
+    climate._fujitsu_device.vane_vertical = MagicMock(return_value=2)
+    climate._fujitsu_device.get_af_vertical_swing = MagicMock(
+        return_value={"value": True}
+    )
+    climate._fujitsu_device.get_af_horizontal_swing = MagicMock(
+        return_value={"value": True}
+    )
+
+    # Test swing mode for both active
+    swing_mode = climate.swing_mode
+    assert swing_mode == SWING_BOTH
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_preset_mode_min_heat_active() -> None:
+    """Test preset_mode returns PRESET_AWAY when min_heat is active."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock min_heat to be active
+    climate._fujitsu_device.get_economy_mode = MagicMock(return_value={"value": False})
+    climate._fujitsu_device.get_powerful_mode = MagicMock(return_value={"value": False})
+    climate._fujitsu_device.get_min_heat = MagicMock(return_value={"value": True})
+
+    # Mock get_prop_from_json to return True for min_heat
+    with patch(
+        "custom_components.fglair_heatpump_controller.climate.get_prop_from_json"
+    ) as mock_get_prop:
+        mock_get_prop.side_effect = lambda prop, props: prop == "min_heat"
+
+        # Test current preset mode
+        preset_mode = climate.preset_mode
+        assert preset_mode == PRESET_AWAY
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_preset_mode_final_return_none() -> None:
+    """Test preset_mode returns PRESET_NONE at the final return statement."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock all modes to be inactive (no value or False)
+    climate._fujitsu_device.get_economy_mode = MagicMock(return_value={"value": False})
+    climate._fujitsu_device.get_powerful_mode = MagicMock(return_value={"value": False})
+    climate._fujitsu_device.get_min_heat = MagicMock(return_value={"value": False})
+
+    # Mock get_prop_from_json to return True for all properties (so they exist)
+    with patch(
+        "custom_components.fglair_heatpump_controller.climate.get_prop_from_json"
+    ) as mock_get_prop:
+        mock_get_prop.return_value = True
+
+        # Test current preset mode - should reach the final return PRESET_NONE
         preset_mode = climate.preset_mode
         assert preset_mode == PRESET_NONE
