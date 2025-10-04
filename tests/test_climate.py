@@ -3512,6 +3512,106 @@ def test_supported_features_without_horizontal_swing() -> None:
     assert ClimateEntityFeature.SWING_HORIZONTAL_MODE not in features
 
 
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_horizontal_mode_string_modes_list() -> None:
+    """Test async_set_swing_horizontal_mode when modes_list is a string."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = "horizontal"
+    mock_device.async_set_af_horizontal_swing = AsyncMock()
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    await climate.async_set_swing_horizontal_mode("horizontal")
+    mock_device.async_set_af_horizontal_swing.assert_called_once_with(1)
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_horizontal_mode_invalid_position() -> None:
+    """Test async_set_swing_horizontal_mode with invalid position string."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    with pytest.raises(HomeAssistantError, match="Invalid horizontal position: abc"):
+        await climate.async_set_swing_horizontal_mode("Horizontal_abc")
+
+
+def test_supported_features_with_string_modes_list() -> None:
+    """Test supported_features when modes_list is a string."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = "horizontal"
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    features = climate.supported_features
+    assert ClimateEntityFeature.SWING_HORIZONTAL_MODE in features
+
+
+def test_swing_horizontal_modes_with_string_modes_list() -> None:
+    """Test swing_horizontal_modes when modes_list is a string."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = "horizontal"
+    mock_device.get_horizontal_positions.return_value = [1, 2, 3]
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_modes = climate.swing_horizontal_modes
+    assert swing_horizontal_modes is not None
+    assert "horizontal" in swing_horizontal_modes
+    assert "Horizontal_1" in swing_horizontal_modes
+    assert "Horizontal_2" in swing_horizontal_modes
+    assert "Horizontal_3" in swing_horizontal_modes
+
+
 def test_supported_features_horizontal_swing_exception() -> None:
     """Test supported_features handles exception when checking horizontal swing."""
     mock_client = MagicMock()

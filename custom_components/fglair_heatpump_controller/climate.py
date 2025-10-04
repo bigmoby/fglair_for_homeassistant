@@ -688,7 +688,13 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         try:
             pos_list: list[str] = []
             modes_list = self._fujitsu_device.get_swing_modes_supported()
-            if modes_list and "horizontal" in modes_list:
+            # Handle both string and list return types
+            if isinstance(modes_list, list):
+                modes_str = " ".join(modes_list).lower()
+            else:
+                modes_str = str(modes_list).lower() if modes_list else ""
+
+            if modes_list and "horizontal" in modes_str:
                 pos_list.append(SWING_HORIZONTAL)
                 try:
                     horizontal_positions = (
@@ -727,7 +733,13 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         """Set new target horizontal swing."""
         try:
             modes_list = self._fujitsu_device.get_swing_modes_supported()
-            if not modes_list or "horizontal" not in modes_list:
+            # Handle both string and list return types
+            if isinstance(modes_list, list):
+                modes_str = " ".join(modes_list).lower()
+            else:
+                modes_str = str(modes_list).lower() if modes_list else ""
+
+            if not modes_list or "horizontal" not in modes_str:
                 _LOGGER.warning(
                     "FujitsuClimate device [%s] does not support horizontal swing mode",
                     self._name,
@@ -737,12 +749,26 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
                 await _async_retry_api_call(
                     lambda: self._fujitsu_device.async_set_af_horizontal_swing(1)
                 )
-            elif swing_horizontal_mode[0:11] == HORIZONTAL:
-                await _async_retry_api_call(
-                    lambda: self._fujitsu_device.async_set_vane_horizontal_position(
-                        int(swing_horizontal_mode[-1])
+            elif swing_horizontal_mode.startswith(HORIZONTAL):
+                # Extract the position number after "Horizontal"
+                position_str = swing_horizontal_mode[len(HORIZONTAL) :]
+                try:
+                    position = int(position_str)
+                    await _async_retry_api_call(
+                        lambda: self._fujitsu_device.async_set_vane_horizontal_position(
+                            position
+                        )
                     )
-                )
+                except ValueError as ex:
+                    _LOGGER.error(
+                        "Invalid horizontal position '%s' for device [%s]: %s",
+                        position_str,
+                        self._name,
+                        ex,
+                    )
+                    raise HomeAssistantError(
+                        f"Invalid horizontal position: {position_str}"
+                    ) from ex
             else:
                 await _async_retry_api_call(
                     lambda: self._fujitsu_device.async_set_af_horizontal_swing(0)
@@ -927,7 +953,13 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         features = SUPPORT_FLAGS
         try:
             modes_list = self._fujitsu_device.get_swing_modes_supported()
-            if modes_list and "horizontal" in modes_list:
+            # Handle both string and list return types
+            if isinstance(modes_list, list):
+                modes_str = " ".join(modes_list).lower()
+            else:
+                modes_str = str(modes_list).lower() if modes_list else ""
+
+            if modes_list and "horizontal" in modes_str:
                 features |= ClimateEntityFeature.SWING_HORIZONTAL_MODE
                 _LOGGER.debug(
                     "FujitsuClimate device [%s] supports horizontal swing mode",
