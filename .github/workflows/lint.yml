@@ -39,7 +39,7 @@ jobs:
 
       - name: "Check for merge conflicts"
         run: |
-          if grep -r "<<<<<<< HEAD" .; then
+          if grep -r "<<<<<<< HEAD\|=======\|>>>>>>> " . --exclude-dir=.git --exclude-dir=venv --exclude-dir=node_modules --exclude-dir=.github; then
             echo "Merge conflicts found!"
             exit 1
           fi
