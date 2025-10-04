@@ -85,34 +85,29 @@ make ci            # Run CI pipeline locally
 make pre-commit-install          # Install pre-commit hooks
 make pre-commit-uninstall        # Uninstall pre-commit hooks
 make pre-commit-run              # Run pre-commit on all files
-make pre-commit-fast             # Switch to fast pre-commit config
-make pre-commit-comprehensive    # Switch to comprehensive pre-commit config
 ```
 
-### Pre-Commit System
+### Development Tools
 
-This project uses a comprehensive pre-commit system that automatically:
+This project includes development tools for code quality and testing:
 
-- ✅ Runs tests and blocks commits if they fail
-- ✅ Enforces 85% code coverage minimum
-- ✅ Performs linting and type checking
-- ✅ Formats code automatically
+#### Pre-Commit Hooks
 
-#### Quick Development Mode
+Install pre-commit hooks to automatically run checks before commits:
 
 ```bash
-make pre-commit-fast  # Faster feedback for daily development
+make pre-commit-install  # Install pre-commit hooks
 ```
 
-#### Release Mode
+The pre-commit configuration includes:
 
-```bash
-make pre-commit-comprehensive  # Full test suite for releases
-```
+- ✅ Code formatting with ruff
+- ✅ Linting with ruff and flake8
+- ✅ Type checking with mypy
+- ✅ Test execution with pytest
+- ✅ Coverage checking (minimum 100%)
 
-For detailed pre-commit documentation, see [PRE_COMMIT_GUIDE.md](PRE_COMMIT_GUIDE.md).
-
-### Manual Commands
+#### Manual Commands
 
 Activate virtual environment:
 
