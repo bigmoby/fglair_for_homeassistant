@@ -565,10 +565,10 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         try:
             # Returns vertical settings, horizontal setting except for swing ignored
             vane_vertical_value = self._fujitsu_device.vane_vertical()
-            swing_vertical = self._fujitsu_device.get_af_vertical_swing().get("value")
-            swing_horizontal = self._fujitsu_device.get_af_horizontal_swing().get(
-                "value"
-            )
+
+            # Use helper methods for safer access to swing values
+            swing_vertical = self._fujitsu_device.get_swing_vertical_value()
+            swing_horizontal = self._fujitsu_device.get_swing_horizontal_value()
 
             _LOGGER.debug(
                 "FujitsuClimate device [%s] vertical swing value: %s, horizontal swing"
@@ -689,31 +689,32 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             )
             return PRESET_NONE
 
-        eco_prop = self._fujitsu_device.get_economy_mode()
-        boost_prop = self._fujitsu_device.get_powerful_mode()
-        min_heat_prop = self._fujitsu_device.get_min_heat()
+        # Use helper methods for safer access to preset values
+        eco_value = self._fujitsu_device.get_economy_mode_value()
+        boost_value = self._fujitsu_device.get_powerful_mode_value()
+        min_heat_value = self._fujitsu_device.get_min_heat_value()
 
-        if eco_prop and eco_prop.get("value"):
+        if eco_value:
             _LOGGER.debug(
                 "FujitsuClimate device [%s] preset eco setting: %s",
                 self._name,
-                eco_prop.get("value"),
+                eco_value,
             )
             return PRESET_ECO
 
-        if boost_prop and boost_prop.get("value"):
+        if boost_value:
             _LOGGER.debug(
                 "FujitsuClimate device [%s] preset boost setting: %s",
                 self._name,
-                boost_prop.get("value"),
+                boost_value,
             )
             return PRESET_BOOST
 
-        if min_heat_prop and min_heat_prop.get("value"):
+        if min_heat_value:
             _LOGGER.debug(
                 "FujitsuClimate device [%s] preset min_heat (or away) setting: %s",
                 self._name,
-                min_heat_prop.get("value"),
+                min_heat_value,
             )
             return PRESET_AWAY
 

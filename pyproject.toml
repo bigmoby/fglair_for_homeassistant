@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "fglair_heatpump_controller"
-version     = "0.3.27"
+version     = "0.3.28"
 license     = {text = "MIT License"}
 description = "FGLair heat pump controller integration"
 readme      = "README.md"
@@ -24,7 +24,7 @@ classifiers = [
 ]
 requires-python = ">=3.12.0"
 dependencies = [
-    "pyfujitsugeneral==2.0.33",
+    "pyfujitsugeneral==2.0.34",
     "aiofiles==24.1.0",
 ]
 
