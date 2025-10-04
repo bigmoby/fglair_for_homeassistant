@@ -79,4 +79,5 @@ class FglairDataUpdateCoordinator(DataUpdateCoordinator):
             async with asyncio.timeout(DEFAULT_TIMEOUT):
                 await self.client.async_get_devices_dsn()
         except Exception as exception:
+            _LOGGER.warning("Failed to update coordinator data: %s", exception)
             raise UpdateFailed from exception

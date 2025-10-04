@@ -59,6 +59,9 @@ clean: ## Clean up temporary files
 	@rm -rf .coverage
 	@rm -rf htmlcov/
 	@rm -rf .pytest_cache/
+	@rm -rf venv/
+	@rm -rf .mypy_cache/
+	@rm -f token.txt
 
 install-dev: ## Install in development mode
 	@echo "📦 Installing in development mode..."

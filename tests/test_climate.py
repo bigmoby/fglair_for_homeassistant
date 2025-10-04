@@ -22,10 +22,12 @@ from homeassistant.const import (
     CONF_REGION,
     CONF_USERNAME,
 )
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 import pytest
 
 from custom_components.fglair_heatpump_controller.climate import (
     FujitsuClimate,
+    _async_retry_api_call,
     async_setup_entry,
 )
 from custom_components.fglair_heatpump_controller.const import (
@@ -388,7 +390,7 @@ async def test_async_set_hvac_mode_invalid_mode() -> None:
     )
 
     # Test with invalid HVAC mode
-    with pytest.raises(ValueError, match="Unsupported HVAC mode"):
+    with pytest.raises(ServiceValidationError, match="Unsupported HVAC mode"):
         await climate.async_set_hvac_mode("INVALID_MODE")
 
 
@@ -1315,6 +1317,220 @@ def test_climate_methods_exist() -> None:
     for method_name in async_methods:
         assert hasattr(climate, method_name)
         assert callable(getattr(climate, method_name))
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_target_temperature_api_failure() -> None:
+    """Test async_target_temperature with API failure."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock API failure
+    climate._fujitsu_device.async_get_adjust_temperature_degree = AsyncMock(
+        side_effect=Exception("API Error")
+    )
+
+    result = await climate.async_target_temperature()
+    assert result is None
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_update_api_failure() -> None:
+    """Test async_update with API failure."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock API failure for update_properties
+    climate._fujitsu_device.async_update_properties = AsyncMock(
+        side_effect=Exception("API Error")
+    )
+
+    # Should return early without raising exception
+    await climate.async_update()
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_update_current_temperature_failure() -> None:
+    """Test async_update with current temperature API failure."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock successful update_properties
+    climate._fujitsu_device.async_update_properties = AsyncMock(return_value={})
+
+    # Mock failure for current temperature
+    climate._fujitsu_device.async_get_display_temperature_degree = AsyncMock(
+        side_effect=Exception("API Error")
+    )
+
+    # Mock other required methods to prevent KeyError
+    climate._fujitsu_device.get_fan_speed = MagicMock(return_value={"value": 1})
+    climate._fujitsu_device.get_operation_mode = MagicMock(
+        return_value={"value": "heat"}
+    )
+    climate._fujitsu_device.get_refresh = MagicMock(
+        return_value={"data_updated_at": "2023-01-01"}
+    )
+    # Mock the refresh method using patch to avoid method assignment error
+    with patch.object(
+        climate, "_async_refresh_display_temperature_request", new_callable=AsyncMock
+    ):
+        # Should continue without raising exception
+        await climate.async_update()
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_update_refresh_temperature_failure() -> None:
+    """Test async_update with refresh temperature failure."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock successful update_properties and current temperature
+    climate._fujitsu_device.async_update_properties = AsyncMock(return_value={})
+    climate._fujitsu_device.async_get_display_temperature_degree = AsyncMock(
+        return_value=20.0
+    )
+
+    # Mock other required methods to prevent KeyError
+    climate._fujitsu_device.get_fan_speed = MagicMock(return_value={"value": 1})
+    climate._fujitsu_device.get_operation_mode = MagicMock(
+        return_value={"value": "heat"}
+    )
+
+    # Mock failure for refresh temperature
+    climate._fujitsu_device.get_refresh = MagicMock(
+        return_value={"data_updated_at": "2023-01-01"}
+    )
+
+    # Mock the method using patch to avoid method assignment error
+    with patch.object(
+        climate,
+        "_async_refresh_display_temperature_request",
+        side_effect=HomeAssistantError("Refresh Error"),
+    ):
+        # Should continue without raising exception
+        await climate.async_update()
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_retry_api_call_success() -> None:
+    """Test _async_retry_api_call with successful API call."""
+
+    async def successful_api_call() -> str:
+        return "success"
+
+    result = await _async_retry_api_call(successful_api_call)
+    assert result == "success"
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_retry_api_call_failure_max_retries() -> None:
+    """Test _async_retry_api_call with failure after max retries."""
+    from homeassistant.exceptions import HomeAssistantError
+    from pyfujitsugeneral.exceptions import FGLairGeneralException
+
+    call_count = 0
+
+    async def failing_api_call() -> None:
+        nonlocal call_count
+        call_count += 1
+        raise FGLairGeneralException("API Error")
+
+    with pytest.raises(HomeAssistantError, match="Device communication failed"):
+        await _async_retry_api_call(failing_api_call, max_retries=2)
+
+    assert call_count == 2  # Should have been called max_retries times
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_retry_api_call_success_after_retry() -> None:
+    """Test _async_retry_api_call with success after retry."""
+    from pyfujitsugeneral.exceptions import FGLairGeneralException
+
+    call_count = 0
+
+    async def eventually_successful_api_call() -> str:
+        nonlocal call_count
+        call_count += 1
+        if call_count < 2:
+            raise FGLairGeneralException("API Error")
+        return "success"
+
+    result = await _async_retry_api_call(eventually_successful_api_call, max_retries=3)
+    assert result == "success"
+    assert call_count == 2
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_retry_api_call_unexpected_error() -> None:
+    """Test _async_retry_api_call with unexpected error."""
+    from homeassistant.exceptions import HomeAssistantError
+
+    async def unexpected_error_call() -> None:
+        raise RuntimeError("Unexpected error")
+
+    with pytest.raises(HomeAssistantError, match="Unexpected device error"):
+        await _async_retry_api_call(unexpected_error_call)
 
 
 def test_name_property() -> None:

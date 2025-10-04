@@ -1,5 +1,7 @@
 """Support for the Fujitsu General Split A/C Wifi platform AKA FGLair ."""
 
+import asyncio
+from contextlib import suppress
 from datetime import datetime
 import logging
 from typing import Any
@@ -34,6 +36,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -41,6 +44,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import Throttle
 from homeassistant.util.dt import utcnow
 from pyfujitsugeneral.client import FGLairApiClient
+from pyfujitsugeneral.exceptions import FGLairGeneralException
 from pyfujitsugeneral.splitAC import SplitAC, get_prop_from_json
 import voluptuous as vol
 
@@ -61,6 +65,31 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+async def _async_retry_api_call(
+    api_call, max_retries: int = 3, delay: float = 1.0
+) -> Any:
+    """Retry API calls with exponential backoff."""
+    for attempt in range(max_retries):
+        try:
+            return await api_call()
+        except FGLairGeneralException as ex:
+            if attempt == max_retries - 1:
+                _LOGGER.error("API call failed after %d attempts: %s", max_retries, ex)
+                raise HomeAssistantError(f"Device communication failed: {ex}") from ex
+            _LOGGER.warning(
+                "API call failed (attempt %d/%d): %s. Retrying in %.1fs...",
+                attempt + 1,
+                max_retries,
+                ex,
+                delay,
+            )
+            await asyncio.sleep(delay)
+            delay *= 2  # Exponential backoff
+        except Exception as ex:
+            _LOGGER.error("Unexpected error during API call: %s", ex)
+            raise HomeAssistantError(f"Unexpected device error: {ex}") from ex
 
 
 SUPPORT_FLAGS: ClimateEntityFeature = (
@@ -283,7 +312,11 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
                 target_temperature,
                 rounded_temperature,
             )
-            await self._fujitsu_device.async_change_temperature(rounded_temperature)
+            await _async_retry_api_call(
+                lambda: self._fujitsu_device.async_change_temperature(
+                    rounded_temperature
+                )
+            )
         else:
             _LOGGER.error(
                 "FujitsuClimate device [%s] A target temperature must be provided",
@@ -296,8 +329,15 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
 
     async def async_target_temperature(self) -> float | None:
         """Return the temperature we try to reach."""
-        data = await self._fujitsu_device.async_get_adjust_temperature_degree()
-        return data
+        try:
+            data = await _async_retry_api_call(
+                self._fujitsu_device.async_get_adjust_temperature_degree
+            )
+        except HomeAssistantError:
+            # Return None if API fails - retry logic already logged the error
+            return None
+        else:
+            return data
 
     @property
     def target_temperature(self) -> float | None:
@@ -354,16 +394,15 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             hvac_mode,
         )
         if hvac_mode not in HA_STATE_TO_FUJITSU:
-            raise ValueError(
-                f"FujitsuClimate device [{self._name}] Unsupported HVAC mode:"
-                f" {hvac_mode}"
-            )
+            raise ServiceValidationError(f"Unsupported HVAC mode: {hvac_mode}")
 
         if hvac_mode == HVACMode.OFF:
-            await self._fujitsu_device.async_turnOff()
+            await _async_retry_api_call(self._fujitsu_device.async_turnOff)
         else:
-            await self._fujitsu_device.async_change_operation_mode(
-                HA_STATE_TO_FUJITSU.get(hvac_mode)
+            await _async_retry_api_call(
+                lambda: self._fujitsu_device.async_change_operation_mode(
+                    HA_STATE_TO_FUJITSU.get(hvac_mode)
+                )
             )
 
         _LOGGER.debug(
@@ -408,19 +447,26 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
     async def async_turn_on(self) -> None:
         """Set the HVAC State to on."""
         _LOGGER.debug("Turning on FujitsuClimate device [%s]", self._name)
-        await self._fujitsu_device.async_turnOn()
+        await _async_retry_api_call(self._fujitsu_device.async_turnOn)
 
     async def async_turn_off(self) -> None:
         """Set the HVAC State to off."""
         _LOGGER.debug("Turning off FujitsuClimate device [%s]", self._name)
-        await self._fujitsu_device.async_turnOff()
+        await _async_retry_api_call(self._fujitsu_device.async_turnOff)
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self) -> None:
         """Retrieve latest state."""
         _LOGGER.debug("Update FujitsuClimate device by async_update")
 
-        self._properties = await self._fujitsu_device.async_update_properties()
+        try:
+            self._properties = await _async_retry_api_call(
+                self._fujitsu_device.async_update_properties
+            )
+        except HomeAssistantError:
+            # Skip update if API fails - retry logic already logged the error
+            return
+
         self._name = self.name  # ensure name is current
 
         _LOGGER.debug(
@@ -432,12 +478,23 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         self._name = self.name
         self._unique_id = self.unique_id
         self._aux_heat = self.is_aux_heat_on
-        self._current_temperature = (
-            await self._fujitsu_device.async_get_display_temperature_degree()
-        )
-        await self._async_refresh_display_temperature_request(
-            self._fujitsu_device.get_refresh()["data_updated_at"]
-        )
+
+        with suppress(HomeAssistantError):
+            self._current_temperature = await _async_retry_api_call(
+                self._fujitsu_device.async_get_display_temperature_degree
+            )
+
+        try:
+            await self._async_refresh_display_temperature_request(
+                self._fujitsu_device.get_refresh()["data_updated_at"]
+            )
+        except (HomeAssistantError, KeyError) as ex:
+            _LOGGER.warning(
+                "Failed to refresh display temperature for device %s: %s",
+                self._name,
+                ex,
+            )
+
         self._target_temperature = await self.async_target_temperature()
         self._fan_mode = self.fan_mode
         self._hvac_mode = self.hvac_mode
@@ -498,7 +555,9 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             fan_mode,
             new_fan_speed,
         )
-        await self._fujitsu_device.async_changeFanSpeed(new_fan_speed)
+        await _async_retry_api_call(
+            lambda: self._fujitsu_device.async_changeFanSpeed(new_fan_speed)
+        )
 
     @property
     def swing_mode(self) -> str | None:
