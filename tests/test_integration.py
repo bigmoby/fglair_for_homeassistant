@@ -1,6 +1,7 @@
 """Test integration setup."""
 
 from custom_components.fglair_heatpump_controller import (
+    FglairDataUpdateCoordinator,
     async_setup_entry,
     async_unload_entry,
 )
@@ -26,6 +27,4 @@ def test_integration_domain() -> None:
 
 def test_integration_imports() -> None:
     """Test that integration can be imported."""
-    from custom_components.fglair_heatpump_controller import FglairDataUpdateCoordinator
-
     assert FglairDataUpdateCoordinator is not None
