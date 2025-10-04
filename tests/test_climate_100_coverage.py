@@ -3,9 +3,10 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant.components.climate.const import (
-    PRESET_AWAY,
     PRESET_BOOST,
     PRESET_ECO,
+    PRESET_NONE,
+    SWING_BOTH,
     SWING_HORIZONTAL,
     SWING_VERTICAL,
     HVACAction,
@@ -489,6 +490,179 @@ async def test_current_preset_mode_away() -> None:
     ) as mock_get_prop:
         mock_get_prop.return_value = True
 
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_hvac_action_return_none() -> None:
+    """Test hvac_action returns None for unknown op_status_desc."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock is_on to return True
+    climate._fujitsu_device.get_operation_mode = MagicMock(return_value={"value": 1})
+
+    # Mock get_op_status_desc to return unknown status
+    climate._fujitsu_device.get_op_status_desc = MagicMock(return_value="Unknown")
+
+    # Test hvac_action for unknown status
+    action = climate.hvac_action
+    assert action is None
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_swing_mode_vertical_only() -> None:
+    """Test swing mode when only vertical swing is active."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock swing mode methods
+    climate._fujitsu_device.vane_vertical = MagicMock(return_value=2)
+    climate._fujitsu_device.get_af_vertical_swing = MagicMock(
+        return_value={"value": True}
+    )
+    climate._fujitsu_device.get_af_horizontal_swing = MagicMock(
+        return_value={"value": False}
+    )
+
+    # Test swing mode for vertical only
+    swing_mode = climate.swing_mode
+    assert swing_mode == SWING_VERTICAL
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_swing_mode_vertical_position() -> None:
+    """Test swing mode when vertical position is set."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock swing mode methods
+    climate._fujitsu_device.vane_vertical = MagicMock(return_value=3)
+    climate._fujitsu_device.get_af_vertical_swing = MagicMock(
+        return_value={"value": False}
+    )
+    climate._fujitsu_device.get_af_horizontal_swing = MagicMock(
+        return_value={"value": False}
+    )
+
+    # Test swing mode for vertical position
+    swing_mode = climate.swing_mode
+    assert swing_mode == VERTICAL + "3"
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_swing_modes_both_mode() -> None:
+    """Test swing modes for Both mode."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock swing modes to return "Both"
+    climate._fujitsu_device.get_swing_modes_supported = MagicMock(return_value="Both")
+    climate._fujitsu_device.vane_vertical_positions = MagicMock(return_value=[1, 2])
+    climate._fujitsu_device.vane_horizontal_positions = MagicMock(return_value=[1, 2])
+
+    # Test swing modes for Both mode
+    swing_modes = climate.swing_modes
+    assert swing_modes is not None
+    assert SWING_VERTICAL in swing_modes
+    assert SWING_HORIZONTAL in swing_modes
+    assert SWING_BOTH in swing_modes
+    assert VERTICAL + "1" in swing_modes
+    assert VERTICAL + "2" in swing_modes
+    assert HORIZONTAL + "1" in swing_modes
+    assert HORIZONTAL + "2" in swing_modes
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_preset_mode_return_none() -> None:
+    """Test preset_mode returns PRESET_NONE when no modes are active."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+
+    # Mock the device name response correctly
+    climate._fujitsu_device.get_device_name = MagicMock(
+        return_value={"value": "Test Device"}
+    )
+
+    # Mock all modes to be inactive
+    climate._fujitsu_device.get_economy_mode = MagicMock(return_value={"value": False})
+    climate._fujitsu_device.get_powerful_mode = MagicMock(return_value={"value": False})
+    climate._fujitsu_device.get_min_heat = MagicMock(return_value={"value": False})
+
+    # Mock get_prop_from_json to return False for all modes
+    with patch(
+        "custom_components.fglair_heatpump_controller.climate.get_prop_from_json"
+    ) as mock_get_prop:
+        mock_get_prop.return_value = False
+
         # Test current preset mode
         preset_mode = climate.preset_mode
-        assert preset_mode == PRESET_AWAY
+        assert preset_mode == PRESET_NONE
