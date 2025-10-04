@@ -58,6 +58,7 @@ clean: ## Clean up temporary files
 	@rm -rf dist/
 	@rm -rf .coverage
 	@rm -rf htmlcov/
+	@rm -rf .pytest_cache/
 
 install-dev: ## Install in development mode
 	@echo "📦 Installing in development mode..."
