@@ -10,8 +10,8 @@ setup: ## Setup development environment
 	@echo "🚀 Setting up development environment..."
 	@./scripts/setup
 
-test: ## Run tests
-	@echo "🧪 Running tests..."
+test: ## Run all tests
+	@echo "🧪 Running all tests..."
 	@bash -c "source venv/bin/activate && python3 -m pytest tests/ -v"
 
 test-coverage: ## Run tests with coverage
