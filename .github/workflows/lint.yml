@@ -9,8 +9,8 @@ on:
       - "main"
 
 jobs:
-  ruff:
-    name: "Ruff"
+  lint:
+    name: "Lint and Format"
     runs-on: "ubuntu-latest"
     steps:
       - name: "Checkout the repository"
@@ -19,11 +19,40 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v6.0.0
         with:
-          python-version: "3.13.2"
+          python-version: "3.12"
           cache: "pip"
 
-      - name: "Install requirements"
-        run: python3 -m pip install -r requirements.txt
+      - name: "Install dependencies"
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r requirements.txt
+          python3 -m pip install flake8==6.1.0 pydocstyle==6.3.0 "pydantic>=1.10.12" PyYAML
 
-      - name: "Run"
+      - name: "Run Ruff Check"
         run: python3 -m ruff check .
+
+      - name: "Run Ruff Format Check"
+        run: python3 -m ruff format --check .
+
+      - name: "Check YAML files"
+        run: python3 -c "import yaml; [yaml.safe_load(open(f)) for f in __import__('glob').glob('**/*.yml') + __import__('glob').glob('**/*.yaml')]"
+
+      - name: "Check for merge conflicts"
+        run: |
+          if grep -r "<<<<<<< HEAD" .; then
+            echo "Merge conflicts found!"
+            exit 1
+          fi
+
+      - name: "Check for case conflicts"
+        run: |
+          find . -name "*.py" -exec basename {} \; | sort | uniq -d
+
+      - name: "Run Flake8"
+        run: python3 -m flake8 . --exclude=venv
+
+      - name: "Run Pytest"
+        run: python3 -m pytest tests/ -v
+
+      - name: "Run Pytest with Coverage"
+        run: python3 -m pytest tests/ -v --cov=custom_components.fglair_heatpump_controller --cov-report=term-missing --cov-fail-under=100

@@ -23,6 +23,7 @@ from homeassistant.const import (
     CONF_USERNAME,
 )
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from pyfujitsugeneral.exceptions import FGLairGeneralException
 import pytest
 
 from custom_components.fglair_heatpump_controller.climate import (
@@ -1486,9 +1487,6 @@ async def test_async_retry_api_call_success() -> None:
 @pytest.mark.asyncio  # type: ignore[misc]
 async def test_async_retry_api_call_failure_max_retries() -> None:
     """Test _async_retry_api_call with failure after max retries."""
-    from homeassistant.exceptions import HomeAssistantError
-    from pyfujitsugeneral.exceptions import FGLairGeneralException
-
     call_count = 0
 
     async def failing_api_call() -> None:
@@ -1505,8 +1503,6 @@ async def test_async_retry_api_call_failure_max_retries() -> None:
 @pytest.mark.asyncio  # type: ignore[misc]
 async def test_async_retry_api_call_success_after_retry() -> None:
     """Test _async_retry_api_call with success after retry."""
-    from pyfujitsugeneral.exceptions import FGLairGeneralException
-
     call_count = 0
 
     async def eventually_successful_api_call() -> str:
@@ -1524,7 +1520,6 @@ async def test_async_retry_api_call_success_after_retry() -> None:
 @pytest.mark.asyncio  # type: ignore[misc]
 async def test_async_retry_api_call_unexpected_error() -> None:
     """Test _async_retry_api_call with unexpected error."""
-    from homeassistant.exceptions import HomeAssistantError
 
     async def unexpected_error_call() -> None:
         raise RuntimeError("Unexpected error")
