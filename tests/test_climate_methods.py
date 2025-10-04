@@ -1,5 +1,6 @@
 """Test climate entity methods."""
 
+import inspect
 from unittest.mock import MagicMock, patch
 
 from custom_components.fglair_heatpump_controller.climate import FujitsuClimate
@@ -24,8 +25,14 @@ def test_climate_set_temperature() -> None:
         coordinator=mock_coordinator,
     )
 
+    # Test that method exists and is callable
     assert hasattr(climate, "async_set_temperature")
     assert callable(climate.async_set_temperature)
+
+    # Test method signature (Home Assistant methods typically use **kwargs)
+    sig = inspect.signature(climate.async_set_temperature)
+    params = list(sig.parameters.keys())
+    assert "kwargs" in params  # Home Assistant pattern
 
 
 def test_climate_set_hvac_mode() -> None:
@@ -43,8 +50,14 @@ def test_climate_set_hvac_mode() -> None:
         coordinator=mock_coordinator,
     )
 
+    # Test that method exists and is callable
     assert hasattr(climate, "async_set_hvac_mode")
     assert callable(climate.async_set_hvac_mode)
+
+    # Test method signature
+    sig = inspect.signature(climate.async_set_hvac_mode)
+    params = list(sig.parameters.keys())
+    assert "hvac_mode" in params
 
 
 def test_climate_set_fan_mode() -> None:
