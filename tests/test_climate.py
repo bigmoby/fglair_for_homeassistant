@@ -3668,6 +3668,52 @@ def test_supported_features_without_horizontal_swing() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_mode_empty_vertical_position() -> None:
+    """Test async_set_swing_mode with empty vertical position."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    with pytest.raises(HomeAssistantError, match="Empty vertical position"):
+        await climate.async_set_swing_mode("Vertical_")
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_mode_empty_horizontal_position() -> None:
+    """Test async_set_swing_mode with empty horizontal position."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    with pytest.raises(HomeAssistantError, match="Empty horizontal position"):
+        await climate.async_set_swing_mode("Horizontal_")
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
 async def test_async_set_swing_horizontal_mode_string_modes_list() -> None:
     """Test async_set_swing_horizontal_mode when modes_list is a string."""
     mock_client = MagicMock()

@@ -830,18 +830,32 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         """Set new target swing."""
         # Note setting one direction will not affect other, except swing both
         if swing_mode == SWING_VERTICAL:
-            await self._fujitsu_device.async_set_af_vertical_swing(1)
+            await _async_retry_api_call(
+                lambda: self._fujitsu_device.async_set_af_vertical_swing(1)
+            )
         elif swing_mode == SWING_HORIZONTAL:
-            await self._fujitsu_device.async_set_af_horizontal_swing(1)
+            await _async_retry_api_call(
+                lambda: self._fujitsu_device.async_set_af_horizontal_swing(1)
+            )
         elif swing_mode == SWING_BOTH:
-            await self._fujitsu_device.async_set_af_vertical_swing(1)
-            await self._fujitsu_device.async_set_af_horizontal_swing(1)
+            await _async_retry_api_call(
+                lambda: self._fujitsu_device.async_set_af_vertical_swing(1)
+            )
+            await _async_retry_api_call(
+                lambda: self._fujitsu_device.async_set_af_horizontal_swing(1)
+            )
         elif isinstance(swing_mode, str) and swing_mode.startswith(VERTICAL):
             # Extract the position number after "Vertical"
             position_str = swing_mode[len(VERTICAL) :]
+            if not position_str:
+                raise HomeAssistantError("Empty vertical position")
             try:
                 position = int(position_str)
-                await self._fujitsu_device.async_set_vane_vertical_position(position)
+                await _async_retry_api_call(
+                    lambda: self._fujitsu_device.async_set_vane_vertical_position(
+                        position
+                    )
+                )
             except ValueError as ex:
                 _LOGGER.error(
                     "Invalid vertical position '%s' for device [%s]: %s",
@@ -855,9 +869,15 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         elif isinstance(swing_mode, str) and swing_mode.startswith(HORIZONTAL):
             # Extract the position number after "Horizontal"
             position_str = swing_mode[len(HORIZONTAL) :]
+            if not position_str:
+                raise HomeAssistantError("Empty horizontal position")
             try:
                 position = int(position_str)
-                await self._fujitsu_device.async_set_vane_horizontal_position(position)
+                await _async_retry_api_call(
+                    lambda: self._fujitsu_device.async_set_vane_horizontal_position(
+                        position
+                    )
+                )
             except ValueError as ex:
                 _LOGGER.error(
                     "Invalid horizontal position '%s' for device [%s]: %s",
