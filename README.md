@@ -80,7 +80,37 @@ make clean         # Clean up temporary files
 make install-dev   # Install in development mode
 make develop       # Start development server
 make ci            # Run CI pipeline locally
+
+# Pre-commit system
+make pre-commit-install          # Install pre-commit hooks
+make pre-commit-uninstall        # Uninstall pre-commit hooks
+make pre-commit-run              # Run pre-commit on all files
+make pre-commit-fast             # Switch to fast pre-commit config
+make pre-commit-comprehensive    # Switch to comprehensive pre-commit config
 ```
+
+### Pre-Commit System
+
+This project uses a comprehensive pre-commit system that automatically:
+
+- ✅ Runs tests and blocks commits if they fail
+- ✅ Enforces 85% code coverage minimum
+- ✅ Performs linting and type checking
+- ✅ Formats code automatically
+
+#### Quick Development Mode
+
+```bash
+make pre-commit-fast  # Faster feedback for daily development
+```
+
+#### Release Mode
+
+```bash
+make pre-commit-comprehensive  # Full test suite for releases
+```
+
+For detailed pre-commit documentation, see [PRE_COMMIT_GUIDE.md](PRE_COMMIT_GUIDE.md).
 
 ### Manual Commands
 
