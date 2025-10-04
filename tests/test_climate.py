@@ -3,6 +3,7 @@
 import inspect
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from homeassistant.components.climate import ClimateEntityFeature
 from homeassistant.components.climate.const import (
     FAN_AUTO,
     FAN_HIGH,
@@ -684,6 +685,9 @@ async def test_current_preset_mode_eco() -> None:
     climate._fujitsu_device.get_economy_mode = MagicMock(return_value={"value": True})
     climate._fujitsu_device.get_powerful_mode = MagicMock(return_value={"value": False})
     climate._fujitsu_device.get_min_heat = MagicMock(return_value={"value": False})
+    climate._fujitsu_device.get_economy_mode_value = MagicMock(return_value=True)
+    climate._fujitsu_device.get_powerful_mode_value = MagicMock(return_value=False)
+    climate._fujitsu_device.get_min_heat_value = MagicMock(return_value=False)
 
     # Mock get_prop_from_json to return True for economy_mode
     with patch(
@@ -721,6 +725,9 @@ async def test_current_preset_mode_boost() -> None:
     climate._fujitsu_device.get_economy_mode = MagicMock(return_value={"value": False})
     climate._fujitsu_device.get_powerful_mode = MagicMock(return_value={"value": True})
     climate._fujitsu_device.get_min_heat = MagicMock(return_value={"value": False})
+    climate._fujitsu_device.get_economy_mode_value = MagicMock(return_value=False)
+    climate._fujitsu_device.get_powerful_mode_value = MagicMock(return_value=True)
+    climate._fujitsu_device.get_min_heat_value = MagicMock(return_value=False)
 
     # Mock get_prop_from_json to return True for powerful_mode
     with patch(
@@ -758,6 +765,9 @@ async def test_current_preset_mode_away() -> None:
     climate._fujitsu_device.get_economy_mode = MagicMock(return_value={"value": False})
     climate._fujitsu_device.get_powerful_mode = MagicMock(return_value={"value": False})
     climate._fujitsu_device.get_min_heat = MagicMock(return_value={"value": True})
+    climate._fujitsu_device.get_economy_mode_value = MagicMock(return_value=False)
+    climate._fujitsu_device.get_powerful_mode_value = MagicMock(return_value=False)
+    climate._fujitsu_device.get_min_heat_value = MagicMock(return_value=True)
 
     # Mock get_prop_from_json to return True for min_heat
     with patch(
@@ -831,6 +841,8 @@ async def test_swing_mode_vertical_only() -> None:
     climate._fujitsu_device.get_af_horizontal_swing = MagicMock(
         return_value={"value": False}
     )
+    climate._fujitsu_device.get_swing_vertical_value = MagicMock(return_value=True)
+    climate._fujitsu_device.get_swing_horizontal_value = MagicMock(return_value=False)
 
     # Test swing mode for vertical only
     swing_mode = climate.swing_mode
@@ -866,6 +878,8 @@ async def test_swing_mode_vertical_position() -> None:
     climate._fujitsu_device.get_af_horizontal_swing = MagicMock(
         return_value={"value": False}
     )
+    climate._fujitsu_device.get_swing_vertical_value = MagicMock(return_value=False)
+    climate._fujitsu_device.get_swing_horizontal_value = MagicMock(return_value=False)
 
     # Test swing mode for vertical position
     swing_mode = climate.swing_mode
@@ -976,6 +990,8 @@ async def test_swing_mode_both_active() -> None:
     climate._fujitsu_device.get_af_horizontal_swing = MagicMock(
         return_value={"value": True}
     )
+    climate._fujitsu_device.get_swing_vertical_value = MagicMock(return_value=True)
+    climate._fujitsu_device.get_swing_horizontal_value = MagicMock(return_value=True)
 
     # Test swing mode for both active
     swing_mode = climate.swing_mode
@@ -1007,6 +1023,9 @@ async def test_preset_mode_min_heat_active() -> None:
     climate._fujitsu_device.get_economy_mode = MagicMock(return_value={"value": False})
     climate._fujitsu_device.get_powerful_mode = MagicMock(return_value={"value": False})
     climate._fujitsu_device.get_min_heat = MagicMock(return_value={"value": True})
+    climate._fujitsu_device.get_economy_mode_value = MagicMock(return_value=False)
+    climate._fujitsu_device.get_powerful_mode_value = MagicMock(return_value=False)
+    climate._fujitsu_device.get_min_heat_value = MagicMock(return_value=True)
 
     # Mock get_prop_from_json to return True for min_heat
     with patch(
@@ -1044,6 +1063,9 @@ async def test_preset_mode_final_return_none() -> None:
     climate._fujitsu_device.get_economy_mode = MagicMock(return_value={"value": False})
     climate._fujitsu_device.get_powerful_mode = MagicMock(return_value={"value": False})
     climate._fujitsu_device.get_min_heat = MagicMock(return_value={"value": False})
+    climate._fujitsu_device.get_economy_mode_value = MagicMock(return_value=False)
+    climate._fujitsu_device.get_powerful_mode_value = MagicMock(return_value=False)
+    climate._fujitsu_device.get_min_heat_value = MagicMock(return_value=False)
 
     # Mock get_prop_from_json to return True for all properties (so they exist)
     with patch(
@@ -3148,3 +3170,621 @@ def test_climate_async_methods_exist() -> None:
     for method_name in async_methods:
         assert hasattr(climate, method_name)
         assert callable(getattr(climate, method_name))
+
+
+# Horizontal swing mode tests
+def test_swing_horizontal_mode_property() -> None:
+    """Test swing_horizontal_mode property."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.get_swing_horizontal_value.return_value = True
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_mode = climate.swing_horizontal_mode
+    assert swing_horizontal_mode == "horizontal"
+
+
+def test_swing_horizontal_mode_property_none() -> None:
+    """Test swing_horizontal_mode property when no horizontal swing."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.get_swing_horizontal_value.return_value = False
+    # Mock that device doesn't have vane_horizontal method
+    mock_device.vane_horizontal = None
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_mode = climate.swing_horizontal_mode
+    assert swing_horizontal_mode is None
+
+
+def test_swing_horizontal_mode_property_no_vane_horizontal() -> None:
+    """Test swing_horizontal_mode when device doesn't have vane_horizontal method."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.get_swing_horizontal_value.return_value = False
+    # Create a mock device that doesn't have vane_horizontal attribute
+    del mock_device.vane_horizontal
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_mode = climate.swing_horizontal_mode
+    assert swing_horizontal_mode is None
+
+
+def test_swing_horizontal_mode_property_fixed_position() -> None:
+    """Test swing_horizontal_mode when swing is off but device has fixed position."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.get_swing_horizontal_value.return_value = False
+    mock_device.vane_horizontal.return_value = 3  # Fixed position 3
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_mode = climate.swing_horizontal_mode
+    assert swing_horizontal_mode == "Horizontal_3"
+
+
+def test_swing_horizontal_mode_property_not_supported() -> None:
+    """Test swing_horizontal_mode when device doesn't support horizontal swing."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = [
+        "vertical"
+    ]  # Only vertical support
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_mode = climate.swing_horizontal_mode
+    assert swing_horizontal_mode is None
+
+
+def test_swing_horizontal_mode_property_main_exception() -> None:
+    """Test swing_horizontal_mode with main exception in get_swing_modes_supported."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.side_effect = Exception("Main API Error")
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_mode = climate.swing_horizontal_mode
+    assert swing_horizontal_mode is None
+
+
+def test_swing_horizontal_mode_property_vane_horizontal_exception() -> None:
+    """Test swing_horizontal_mode property when vane_horizontal raises exception."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.get_swing_horizontal_value.return_value = False
+    mock_device.vane_horizontal.side_effect = Exception("Vane error")
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_mode = climate.swing_horizontal_mode
+    assert swing_horizontal_mode is None
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_mode_invalid_vertical_position() -> None:
+    """Test async_set_swing_mode with invalid vertical position."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_device_name.return_value = {"value": "Test Device"}
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    # Test with invalid vertical position (non-numeric)
+    with pytest.raises(HomeAssistantError, match="Invalid vertical position: abc"):
+        await climate.async_set_swing_mode("Vertical_abc")
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_mode_invalid_horizontal_position() -> None:
+    """Test async_set_swing_mode with invalid horizontal position."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_device_name.return_value = {"value": "Test Device"}
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    # Test with invalid horizontal position (non-numeric)
+    with pytest.raises(HomeAssistantError, match="Invalid horizontal position: xyz"):
+        await climate.async_set_swing_mode("Horizontal_xyz")
+
+
+def test_swing_horizontal_modes_property_supported() -> None:
+    """Test swing_horizontal_modes property when supported."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.get_horizontal_positions.side_effect = Exception("No positions")
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_modes = climate.swing_horizontal_modes
+    assert swing_horizontal_modes == ["horizontal"]
+
+
+def test_swing_horizontal_modes_property_with_positions() -> None:
+    """Test swing_horizontal_modes property with specific positions."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.get_horizontal_positions.return_value = [1, 2, 3]
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_modes = climate.swing_horizontal_modes
+    assert swing_horizontal_modes == [
+        "horizontal",
+        "Horizontal_1",
+        "Horizontal_2",
+        "Horizontal_3",
+    ]
+
+
+def test_swing_horizontal_modes_property_not_supported() -> None:
+    """Test swing_horizontal_modes property when not supported."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["vertical"]
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_modes = climate.swing_horizontal_modes
+    assert swing_horizontal_modes is None
+
+
+def test_swing_horizontal_modes_property_exception() -> None:
+    """Test swing_horizontal_modes property with exception."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.side_effect = Exception("API Error")
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_modes = climate.swing_horizontal_modes
+    assert swing_horizontal_modes is None
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_horizontal_mode_supported() -> None:
+    """Test async_set_swing_horizontal_mode when supported."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.async_set_af_horizontal_swing = AsyncMock()
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    await climate.async_set_swing_horizontal_mode("horizontal")
+    mock_device.async_set_af_horizontal_swing.assert_called_once_with(1)
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_horizontal_mode_position() -> None:
+    """Test async_set_swing_horizontal_mode with specific position."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.async_set_vane_horizontal_position = AsyncMock()
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    await climate.async_set_swing_horizontal_mode("Horizontal_2")
+    mock_device.async_set_vane_horizontal_position.assert_called_once_with(2)
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_horizontal_mode_invalid_value() -> None:
+    """Test async_set_swing_horizontal_mode with invalid value raises error."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.async_set_af_horizontal_swing = AsyncMock()
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    with pytest.raises(HomeAssistantError, match="Invalid horizontal swing mode: off"):
+        await climate.async_set_swing_horizontal_mode("off")
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_horizontal_mode_not_supported() -> None:
+    """Test async_set_swing_horizontal_mode when not supported."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["vertical"]
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    await climate.async_set_swing_horizontal_mode("horizontal")
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_horizontal_mode_exception() -> None:
+    """Test async_set_swing_horizontal_mode with exception."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_device.async_set_af_horizontal_swing = AsyncMock(
+        side_effect=Exception("API Error")
+    )
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    with pytest.raises(HomeAssistantError, match="Failed to set horizontal swing mode"):
+        await climate.async_set_swing_horizontal_mode("horizontal")
+
+
+def test_supported_features_with_horizontal_swing() -> None:
+    """Test supported_features includes horizontal swing when supported."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    features = climate.supported_features
+    assert ClimateEntityFeature.SWING_HORIZONTAL_MODE in features
+
+
+def test_supported_features_without_horizontal_swing() -> None:
+    """Test supported_features excludes horizontal swing when not supported."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["vertical"]
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    features = climate.supported_features
+    assert ClimateEntityFeature.SWING_HORIZONTAL_MODE not in features
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_horizontal_mode_string_modes_list() -> None:
+    """Test async_set_swing_horizontal_mode when modes_list is a string."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = "horizontal"
+    mock_device.async_set_af_horizontal_swing = AsyncMock()
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    await climate.async_set_swing_horizontal_mode("horizontal")
+    mock_device.async_set_af_horizontal_swing.assert_called_once_with(1)
+
+
+@pytest.mark.asyncio  # type: ignore[misc]
+async def test_async_set_swing_horizontal_mode_invalid_position() -> None:
+    """Test async_set_swing_horizontal_mode with invalid position string."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = ["horizontal"]
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    with pytest.raises(HomeAssistantError, match="Invalid horizontal position: abc"):
+        await climate.async_set_swing_horizontal_mode("Horizontal_abc")
+
+
+def test_supported_features_with_string_modes_list() -> None:
+    """Test supported_features when modes_list is a string."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = "horizontal"
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    features = climate.supported_features
+    assert ClimateEntityFeature.SWING_HORIZONTAL_MODE in features
+
+
+def test_swing_horizontal_modes_with_string_modes_list() -> None:
+    """Test swing_horizontal_modes when modes_list is a string."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.return_value = "horizontal"
+    mock_device.get_horizontal_positions.return_value = [1, 2, 3]
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    swing_horizontal_modes = climate.swing_horizontal_modes
+    assert swing_horizontal_modes is not None
+    assert "horizontal" in swing_horizontal_modes
+    assert "Horizontal_1" in swing_horizontal_modes
+    assert "Horizontal_2" in swing_horizontal_modes
+    assert "Horizontal_3" in swing_horizontal_modes
+
+
+def test_supported_features_horizontal_swing_exception() -> None:
+    """Test supported_features handles exception when checking horizontal swing."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_device = MagicMock()
+    mock_device.get_swing_modes_supported.side_effect = Exception("API Error")
+    mock_client.get_device.return_value = mock_device
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=MagicMock(),
+        coordinator=mock_coordinator,
+    )
+    climate._fujitsu_device = mock_device
+
+    features = climate.supported_features
+    assert ClimateEntityFeature.SWING_HORIZONTAL_MODE not in features

@@ -46,7 +46,14 @@ Please, use your FGLair app username/password and region your FGLair account is 
 
 Attention: please, remove from `configuration.yaml` any previous FGLair installation setup.
 
-Note for A/C units with horizontal swing support, the horizontal swing and position can be changed but only the vertical position will be shown due to limitations with Home Assistant's climate entity.
+## Features
+
+- **HVAC Modes**: Heat, Cool, Auto, Dry, Fan Only, Off
+- **Fan Speeds**: Auto, Low, Medium, High, Quiet
+- **Preset Modes**: Economy, Boost, Away (Min Heat)
+- **Temperature Control**: Adjustable target temperature with offset support
+- **Vertical Swing**: Full vertical swing control with position settings
+- **Horizontal Swing**: Independent horizontal swing control (requires Home Assistant 2024.12+ and compatible air conditioner)
 
 ## Develop
 
@@ -151,7 +158,8 @@ The project uses:
 ## Known issues and missing features:
 
 - [x] Logging needs to be implemented
-- [x] The “powerful” functionality is implemented via the preset selections in the UI
+- [x] The "powerful" functionality is implemented via the preset selections in the UI
+- [x] Independent horizontal swing control (Home Assistant 2024.12+)
 - [ ] There are some other functionalities in the A/C which currently is not implemented.
 - [ ] Possibility to add external temperature sensor
 

@@ -1,4 +1,4 @@
-# https://www.home-assistant.io/integrations/default_config/
+# Loads default set of integrations. Do not remove.
 default_config:
 
 logger:
