@@ -3392,8 +3392,8 @@ async def test_async_set_swing_horizontal_mode_position() -> None:
 
 
 @pytest.mark.asyncio  # type: ignore[misc]
-async def test_async_set_swing_horizontal_mode_off() -> None:
-    """Test async_set_swing_horizontal_mode turning off."""
+async def test_async_set_swing_horizontal_mode_invalid_value() -> None:
+    """Test async_set_swing_horizontal_mode with invalid value raises error."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
     mock_device = MagicMock()
@@ -3412,8 +3412,8 @@ async def test_async_set_swing_horizontal_mode_off() -> None:
     )
     climate._fujitsu_device = mock_device
 
-    await climate.async_set_swing_horizontal_mode("off")
-    mock_device.async_set_af_horizontal_swing.assert_called_once_with(0)
+    with pytest.raises(HomeAssistantError, match="Invalid horizontal swing mode: off"):
+        await climate.async_set_swing_horizontal_mode("off")
 
 
 @pytest.mark.asyncio  # type: ignore[misc]

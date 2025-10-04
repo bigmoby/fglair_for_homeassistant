@@ -770,8 +770,13 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
                         f"Invalid horizontal position: {position_str}"
                     ) from ex
             else:
-                await _async_retry_api_call(
-                    lambda: self._fujitsu_device.async_set_af_horizontal_swing(0)
+                _LOGGER.error(
+                    "Invalid horizontal swing mode '%s' for device [%s]",
+                    swing_horizontal_mode,
+                    self._name,
+                )
+                raise HomeAssistantError(
+                    f"Invalid horizontal swing mode: {swing_horizontal_mode}"
                 )
             _LOGGER.debug(
                 "FujitsuClimate device [%s] horizontal swing choice [%s]",
