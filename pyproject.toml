@@ -80,7 +80,8 @@ zip-safe  = false
 include-package-data = true
 
 [tool.pylint.MAIN]
-py-version = "3.13"
+# Configured for minimum Python version >=3.12.0
+py-version = "3.12"
 ignore = [
     "tests",
 ]
@@ -735,7 +736,8 @@ max-complexity = 25
 # mypy global options:
 
 [tool.mypy]
-python_version = 3.13
+# Configured for minimum Python version >=3.12.0
+python_version = 3.12
 plugins = "pydantic.mypy"
 pretty = true
 show_error_codes = true
