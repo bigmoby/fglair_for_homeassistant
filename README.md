@@ -77,7 +77,7 @@ Use the Makefile for common development tasks:
 
 ```bash
 make help          # Show all available commands
-make setup         # Setup development environment
+make setup         # Setup development environment (run this first!)
 make test          # Run tests
 make test-coverage # Run tests with coverage report
 make lint          # Run linting tools
@@ -85,7 +85,7 @@ make format        # Format code
 make check         # Run all checks (lint + test)
 make clean         # Clean up temporary files
 make install-dev   # Install in development mode
-make develop       # Start development server
+make develop       # Start development server (requires setup first)
 make ci            # Run CI pipeline locally
 
 # Pre-commit system
@@ -93,6 +93,8 @@ make pre-commit-install          # Install pre-commit hooks
 make pre-commit-uninstall        # Uninstall pre-commit hooks
 make pre-commit-run              # Run pre-commit on all files
 ```
+
+**Note**: Make sure you have run `make setup` before using `make develop`, otherwise you may get an error because the `hass` command will not be available.
 
 ### Development Tools
 

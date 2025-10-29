@@ -1,5 +1,5 @@
 default_language_version:
-  python: python3.12
+  python: python3.13
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.7.0
@@ -32,7 +32,7 @@ repos:
       - id: mypy
         args: [--strict]
         language: python
-        language_version: python3.12
+        language_version: python3.13
         additional_dependencies:
           - "pydantic>=1.10.12"
   - repo: local

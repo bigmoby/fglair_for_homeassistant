@@ -1,5 +1,5 @@
 {
     "name": "FGLair Home Assistant Integration",
     "render_readme": false,
-    "homeassistant": "2024.3.3"
+    "homeassistant": "2025.10.4"
 }

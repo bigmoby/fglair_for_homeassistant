@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name        = "fglair_heatpump_controller"
-version     = "0.3.29"
+version     = "0.4.0"
 license     = {text = "MIT License"}
 description = "FGLair heat pump controller integration"
 readme      = "README.md"
@@ -18,11 +18,10 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Topic :: FGLair heat pump controller integration",
 ]
-requires-python = ">=3.12.0"
+requires-python = ">=3.13.0"
 dependencies = [
     "pyfujitsugeneral==2.0.34",
     "aiofiles==25.1.0",
@@ -80,8 +79,8 @@ zip-safe  = false
 include-package-data = true
 
 [tool.pylint.MAIN]
-# Configured for minimum Python version >=3.12.0
-py-version = "3.12"
+# Configured for minimum Python version >=3.13.0
+py-version = "3.13"
 ignore = [
     "tests",
 ]
@@ -736,8 +735,8 @@ max-complexity = 25
 # mypy global options:
 
 [tool.mypy]
-# Configured for minimum Python version >=3.12.0
-python_version = 3.12
+# Configured for minimum Python version >=3.13.0
+python_version = 3.13
 plugins = "pydantic.mypy"
 pretty = true
 show_error_codes = true

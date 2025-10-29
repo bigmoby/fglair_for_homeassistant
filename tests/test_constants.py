@@ -94,7 +94,7 @@ def test_version_format() -> None:
     """Test version format."""
     assert isinstance(VERSION, str)
     assert len(VERSION) > 0
-    # Version should be in format like "0.3.29"
+    # Version should be in format like "0.4.0"
     parts = VERSION.split(".")
     assert len(parts) == 3
     for part in parts:
