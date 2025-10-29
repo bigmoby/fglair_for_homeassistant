@@ -153,3 +153,15 @@ config/secrets.yaml
 !config/configuration.yaml
 token.txt
 .DS_Store
+venv/*
+.coverage
+.pytest_cache/*
+.mypy_cache/*
+.ruff_cache/*
+.vscode/*
+.devcontainer/*
+.github/*
+.husky/*
+.prettierignore
+.prettierrc
+.prettierignore
