@@ -4,6 +4,14 @@ set -e
 
 cd "$(dirname "$0")/.."
 
+# Activate virtual environment if it exists
+if [ -d "venv" ]; then
+    source venv/bin/activate
+elif [ -z "$VIRTUAL_ENV" ]; then
+    echo "⚠️  Virtual environment not found. Please run 'make setup' first."
+    exit 1
+fi
+
 # Create config dir if not present
 if [[ ! -d "${PWD}/config" ]]; then
     mkdir -p "${PWD}/config"
