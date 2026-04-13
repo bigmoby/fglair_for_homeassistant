@@ -29,7 +29,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.4.2",
+    "pytest>=9.0.3",
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=7.0.0",
     "pytest-mypy>=1.0.1",
@@ -48,7 +48,7 @@ dev = [
     "syrupy>=4.9.1",
 ]
 test = [
-    "pytest>=8.4.2",
+    "pytest>=9.0.3",
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=7.0.0",
     "coverage>=7.6.8",
