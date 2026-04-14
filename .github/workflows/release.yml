@@ -16,16 +16,16 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      
+
     steps:
       - name: "Checkout the repository"
         uses: actions/checkout@v4
-        
+
       - name: "Create zip package"
         run: |
           cd custom_components/fglair_heatpump_controller
           zip fglair_heatpump_controller.zip -r ./
-          
+
       - name: "Upload zip to release"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
