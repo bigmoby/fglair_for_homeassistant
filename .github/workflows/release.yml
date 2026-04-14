@@ -23,12 +23,12 @@ jobs:
         
       - name: "Create zip package"
         run: |
-          cd custom_components/fglair_for_homeassistant
-          zip fglair_for_homeassistant.zip -r ./
+          cd custom_components/fglair_heatpump_controller
+          zip fglair_heatpump_controller.zip -r ./
           
       - name: "Upload zip to release"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG_NAME: ${{ inputs.version || github.event.release.tag_name }}
         run: |
-          gh release upload ${TAG_NAME} custom_components/fglair_for_homeassistant/fglair_for_homeassistant.zip
+          gh release upload ${TAG_NAME} custom_components/fglair_heatpump_controller/fglair_heatpump_controller.zip
