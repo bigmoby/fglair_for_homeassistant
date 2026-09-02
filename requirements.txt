@@ -18,5 +18,3 @@ ruff>=0.13.3
 mypy>=1.18.2
 pylint>=3.3.8
 pre-commit>=4.3.0
-
-sqlalchemy>=2.0.52
