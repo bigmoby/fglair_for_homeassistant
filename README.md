@@ -150,8 +150,8 @@ Start development server:
 
 The project uses:
 
-- **pyfujitsugeneral==2.0.33** - Core API client for FGLair
-- **aiofiles==24.1.0** - Async file operations
+- **pyfujitsugeneral==2.0.36** - Core API client for FGLair
+- **aiofiles==25.1.0** - Async file operations
 - **pytest-homeassistant-custom-component** - Testing framework for HA integrations
 - **ruff** - Fast Python linter and formatter
 - **mypy** - Static type checker
