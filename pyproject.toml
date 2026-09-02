@@ -23,7 +23,7 @@ classifiers = [
 ]
 requires-python = ">=3.13.0"
 dependencies = [
-    "pyfujitsugeneral==2.0.34",
+    "pyfujitsugeneral==2.0.36",
     "aiofiles==25.1.0",
 ]
 
