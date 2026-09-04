@@ -69,8 +69,8 @@ def test_climate_constants() -> None:
     assert DEFAULT_TEMPERATURE_OFFSET is not None
 
 
-def test_climate_unique_id() -> None:
-    """Test climate entity unique ID."""
+def test_climate_unique_id_uses_stable_dsn() -> None:
+    """Test that climate unique ID is based on the stable DSN."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -84,10 +84,133 @@ def test_climate_unique_id() -> None:
         coordinator=mock_coordinator,
     )
 
-    # Test that unique_id exists and is a string
-    assert hasattr(climate, "unique_id")
-    assert isinstance(climate.unique_id, str)
-    assert len(climate.unique_id) > 0
+    climate._name = "AP-WF2E-0123456789ab"
+    assert climate.unique_id == "test-dsn_climate"
+
+    climate._name = "Renamed Device"
+    assert climate.unique_id == "test-dsn_climate"
+
+
+def test_climate_migrates_legacy_name_based_unique_id() -> None:
+    """Test migration from the legacy name-based unique ID."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_hass = MagicMock()
+    mock_registry = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=mock_hass,
+        coordinator=mock_coordinator,
+    )
+    climate._name = "Legacy Device"
+
+    mock_registry.async_get_entity_id.side_effect = [
+        "climate.legacy_device",
+        None,
+    ]
+
+    with patch(
+        "custom_components.fglair_heatpump_controller.climate.er.async_get",
+        return_value=mock_registry,
+    ):
+        climate._migrate_legacy_unique_id()
+        climate._migrate_legacy_unique_id()
+
+    mock_registry.async_update_entity.assert_called_once_with(
+        "climate.legacy_device",
+        new_unique_id="test-dsn_climate",
+    )
+    assert mock_registry.async_get_entity_id.call_count == 2
+
+
+def test_climate_does_not_overwrite_existing_stable_unique_id() -> None:
+    """Test migration collision handling for an existing DSN identity."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_hass = MagicMock()
+    mock_registry = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=mock_hass,
+        coordinator=mock_coordinator,
+    )
+    climate._name = "Legacy Device"
+
+    mock_registry.async_get_entity_id.side_effect = [
+        "climate.legacy_device",
+        "climate.pompdur",
+    ]
+
+    with patch(
+        "custom_components.fglair_heatpump_controller.climate.er.async_get",
+        return_value=mock_registry,
+    ):
+        climate._migrate_legacy_unique_id()
+
+    mock_registry.async_update_entity.assert_not_called()
+
+
+def test_climate_migration_ignores_missing_legacy_entity() -> None:
+    """Test migration when no legacy registry entity exists."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_hass = MagicMock()
+    mock_registry = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=mock_hass,
+        coordinator=mock_coordinator,
+    )
+    climate._name = "Legacy Device"
+    mock_registry.async_get_entity_id.return_value = None
+
+    with patch(
+        "custom_components.fglair_heatpump_controller.climate.er.async_get",
+        return_value=mock_registry,
+    ):
+        climate._migrate_legacy_unique_id()
+
+    mock_registry.async_update_entity.assert_not_called()
+
+
+def test_climate_migration_skips_identical_legacy_and_stable_ids() -> None:
+    """Test migration when the reported name already matches the DSN."""
+    mock_client = MagicMock()
+    mock_coordinator = MagicMock()
+    mock_hass = MagicMock()
+
+    climate = FujitsuClimate(
+        fglair_api_client=mock_client,
+        dsn="test-dsn",
+        region="eu",
+        tokenpath=DEFAULT_TOKEN_PATH,
+        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
+        hass=mock_hass,
+        coordinator=mock_coordinator,
+    )
+    climate._name = "test-dsn"
+
+    with patch(
+        "custom_components.fglair_heatpump_controller.climate.er.async_get"
+    ) as mock_registry_get:
+        climate._migrate_legacy_unique_id()
+
+    mock_registry_get.assert_not_called()
 
 
 def test_climate_name() -> None:
