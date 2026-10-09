@@ -112,12 +112,12 @@ async def test_create_client_success() -> None:
         )
 
         mock_create_entry.assert_called_once_with(
-            "test_user",
-            "test_pass",
-            "eu",
-            "/test/path",
-            1.0,
-            "test_token",
+            username="test_user",
+            password="test_pass",
+            region="eu",
+            tokenpath="/test/path",
+            temperature_offset=1.0,
+            acquired_token="test_token",
         )
 
 
@@ -351,12 +351,12 @@ async def test_create_client_with_different_regions() -> None:
             )
 
             mock_create_entry.assert_called_once_with(
-                f"user_{region}",
-                "test_pass",
-                region,
-                "/test/path",
-                1.0,
-                f"token_{region}",
+                username=f"user_{region}",
+                password="test_pass",
+                region=region,
+                tokenpath="/test/path",
+                temperature_offset=1.0,
+                acquired_token=f"token_{region}",
             )
 
 
@@ -396,12 +396,12 @@ async def test_create_client_with_different_temperature_offsets() -> None:
             )
 
             mock_create_entry.assert_called_once_with(
-                "test_user",
-                "test_pass",
-                "eu",
-                "/test/path",
-                offset,
-                f"token_{offset}",
+                username="test_user",
+                password="test_pass",
+                region="eu",
+                tokenpath="/test/path",
+                temperature_offset=offset,
+                acquired_token=f"token_{offset}",
             )
 
 
@@ -444,10 +444,10 @@ async def test_create_client_with_special_characters() -> None:
         )
 
         mock_create_entry.assert_called_once_with(
-            special_inputs["username"],
-            special_inputs["password"],
-            special_inputs["region"],
-            special_inputs["tokenpath"],
-            1.0,
-            "special_token",
+            username=special_inputs["username"],
+            password=special_inputs["password"],
+            region=special_inputs["region"],
+            tokenpath=special_inputs["tokenpath"],
+            temperature_offset=1.0,
+            acquired_token="special_token",
         )
