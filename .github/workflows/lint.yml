@@ -19,14 +19,14 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v7.0.0
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           cache: "pip"
 
       - name: "Install dependencies"
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install -r requirements.txt
-          python3 -m pip install flake8==6.1.0 pydocstyle==6.3.0 "pydantic>=1.10.12" PyYAML
+          python3 -m pip install flake8==7.4.1 pydocstyle==6.3.0 "pydantic>=1.10.12" PyYAML
 
       - name: "Run Ruff Check"
         run: python3 -m ruff check .

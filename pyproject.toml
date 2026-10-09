@@ -18,10 +18,10 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: FGLair heat pump controller integration",
 ]
-requires-python = ">=3.13.0"
+requires-python = ">=3.14.2"
 dependencies = [
     "pyfujitsugeneral==2.0.36",
     "aiofiles==25.1.0",
@@ -30,40 +30,40 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0.3",
-    "pytest-asyncio>=1.2.0",
-    "pytest-cov>=7.0.0",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
     "pytest-mypy>=1.0.1",
-    "ruff>=0.13.3",
-    "mypy>=1.20.0",
-    "pylint>=3.3.8",
-    "pre-commit>=4.5.1",
-    "black>=24.10.0",
-    "flake8>=7.1.1",
-    "isort>=8.0.1",
+    "ruff>=0.16.10",
+    "mypy>=2.4.0",
+    "pylint>=4.1.2",
+    "pre-commit>=4.6.2",
+    "black>=26.10.0",
+    "flake8>=7.4.1",
+    "isort>=9.0.2",
     "pydocstyle>=6.3.0",
-    "coverage>=7.6.8",
-    "freezegun>=1.5.1",
+    "coverage>=7.16.2",
+    "freezegun>=1.5.5",
     "requests-mock>=1.12.1",
-    "respx>=0.22.0",
-    "syrupy>=4.9.1",
+    "respx>=0.23.1",
+    "syrupy>=6.1.1",
 ]
 test = [
     "pytest>=9.0.3",
-    "pytest-asyncio>=1.2.0",
-    "pytest-cov>=7.0.0",
-    "coverage>=7.6.8",
-    "freezegun>=1.5.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "coverage>=7.16.2",
+    "freezegun>=1.5.5",
     "requests-mock>=1.12.1",
-    "respx>=0.22.0",
-    "syrupy>=4.9.1",
+    "respx>=0.23.1",
+    "syrupy>=6.1.1",
 ]
 lint = [
-    "ruff>=0.13.3",
-    "mypy>=1.20.0",
-    "pylint>=3.3.8",
-    "black>=24.10.0",
-    "flake8>=7.1.1",
-    "isort>=8.0.1",
+    "ruff>=0.16.10",
+    "mypy>=2.4.0",
+    "pylint>=4.1.2",
+    "black>=26.10.0",
+    "flake8>=7.4.1",
+    "isort>=9.0.2",
     "pydocstyle>=6.3.0",
 ]
 
@@ -79,8 +79,8 @@ zip-safe  = false
 include-package-data = true
 
 [tool.pylint.MAIN]
-# Configured for minimum Python version >=3.13.0
-py-version = "3.13"
+# Configured for minimum Python version >=3.14.2
+py-version = "3.14"
 ignore = [
     "tests",
 ]
@@ -735,8 +735,8 @@ max-complexity = 25
 # mypy global options:
 
 [tool.mypy]
-# Configured for minimum Python version >=3.13.0
-python_version = 3.13
+# Configured for minimum Python version >=3.14.2
+python_version = 3.14
 plugins = "pydantic.mypy"
 pretty = true
 show_error_codes = true

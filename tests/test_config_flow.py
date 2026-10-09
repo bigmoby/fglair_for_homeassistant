@@ -39,7 +39,7 @@ def test_config_flow_step_user_method_exists() -> None:
     assert callable(handler.async_step_user)
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_step_user_no_input() -> None:
     """Test async_step_user with no user input."""
     handler = FGLairIntegrationFlowHandler()
@@ -52,7 +52,7 @@ async def test_async_step_user_no_input() -> None:
     assert "data_schema" in result
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_step_user_with_input() -> None:
     """Test async_step_user with user input."""
     handler = FGLairIntegrationFlowHandler()
@@ -80,7 +80,7 @@ async def test_async_step_user_with_input() -> None:
         )
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_create_client_success() -> None:
     """Test _create_client success."""
     handler = FGLairIntegrationFlowHandler()
@@ -121,7 +121,7 @@ async def test_create_client_success() -> None:
         )
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_create_client_timeout_error() -> None:
     """Test _create_client with timeout error."""
     handler = FGLairIntegrationFlowHandler()
@@ -153,7 +153,7 @@ async def test_create_client_timeout_error() -> None:
         assert result["reason"] == "cannot_connect"
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_create_client_connection_error() -> None:
     """Test _create_client with connection error."""
     handler = FGLairIntegrationFlowHandler()
@@ -185,7 +185,7 @@ async def test_create_client_connection_error() -> None:
         assert result["reason"] == "cannot_connect"
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_create_client_blank_password() -> None:
     """Test _create_client with blank password."""
     handler = FGLairIntegrationFlowHandler()
@@ -201,7 +201,7 @@ async def test_create_client_blank_password() -> None:
         )
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_create_client_blank_region() -> None:
     """Test _create_client with blank region."""
     handler = FGLairIntegrationFlowHandler()
@@ -217,7 +217,7 @@ async def test_create_client_blank_region() -> None:
         )
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_create_entry_success() -> None:
     """Test _create_entry success."""
     handler = FGLairIntegrationFlowHandler()
@@ -245,7 +245,7 @@ async def test_create_entry_success() -> None:
         assert result["data"][CONF_TEMPERATURE_OFFSET] == 1.0
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_create_entry_unique_id_configured() -> None:
     """Test _create_entry with already configured unique ID."""
     handler = FGLairIntegrationFlowHandler()
@@ -314,7 +314,7 @@ def test_handler_class_properties() -> None:
     assert handler.hass is None
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_create_client_with_different_regions() -> None:
     """Test _create_client with different regions."""
     handler = FGLairIntegrationFlowHandler()
@@ -360,7 +360,7 @@ async def test_create_client_with_different_regions() -> None:
             )
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_create_client_with_different_temperature_offsets() -> None:
     """Test _create_client with different temperature offsets."""
     handler = FGLairIntegrationFlowHandler()
@@ -405,7 +405,7 @@ async def test_create_client_with_different_temperature_offsets() -> None:
             )
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_create_client_with_special_characters() -> None:
     """Test _create_client with special characters in inputs."""
     handler = FGLairIntegrationFlowHandler()

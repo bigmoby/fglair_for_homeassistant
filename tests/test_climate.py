@@ -299,7 +299,7 @@ def test_climate_target_temperature_step() -> None:
     assert climate.target_temperature_step > 0
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_handle_coordinator_update() -> None:
     """Test _handle_coordinator_update callback."""
     mock_client = MagicMock()
@@ -331,7 +331,7 @@ async def test_handle_coordinator_update() -> None:
         mock_super.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_added_to_hass() -> None:
     """Test async_added_to_hass method."""
     mock_client = MagicMock()
@@ -371,7 +371,7 @@ async def test_async_added_to_hass() -> None:
         mock_super_handle.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_hvac_mode_invalid_mode() -> None:
     """Test async_set_hvac_mode with invalid HVAC mode."""
     mock_client = MagicMock()
@@ -397,7 +397,7 @@ async def test_async_set_hvac_mode_invalid_mode() -> None:
         await climate.async_set_hvac_mode("INVALID_MODE")
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_hvac_action_when_off() -> None:
     """Test hvac_action when device is off."""
     mock_client = MagicMock()
@@ -426,7 +426,7 @@ async def test_hvac_action_when_off() -> None:
     assert action == HVACAction.OFF
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_hvac_action_defrost_mode() -> None:
     """Test hvac_action for Defrost mode."""
     mock_client = MagicMock()
@@ -458,7 +458,7 @@ async def test_hvac_action_defrost_mode() -> None:
     assert action == HVACAction.PREHEATING
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_swing_mode_exception_handling() -> None:
     """Test swing mode exception handling."""
     mock_client = MagicMock()
@@ -489,7 +489,7 @@ async def test_swing_mode_exception_handling() -> None:
     assert swing_mode is None
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_swing_modes_vertical_mode() -> None:
     """Test swing modes for Vertical mode."""
     mock_client = MagicMock()
@@ -525,7 +525,7 @@ async def test_swing_modes_vertical_mode() -> None:
     assert VERTICAL + "3" in swing_modes
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_swing_modes_horizontal_mode() -> None:
     """Test swing modes for Horizontal mode."""
     mock_client = MagicMock()
@@ -560,7 +560,7 @@ async def test_swing_modes_horizontal_mode() -> None:
     assert HORIZONTAL + "2" in swing_modes
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_swing_modes_empty_list() -> None:
     """Test swing modes when pos_list is empty."""
     mock_client = MagicMock()
@@ -591,7 +591,7 @@ async def test_swing_modes_empty_list() -> None:
     assert swing_modes is None
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_mode_vertical_horizontal() -> None:
     """Test async_set_swing_mode for VERTICAL and HORIZONTAL."""
     mock_client = MagicMock()
@@ -625,7 +625,7 @@ async def test_async_set_swing_mode_vertical_horizontal() -> None:
     climate._fujitsu_device.async_set_af_horizontal_swing.assert_called_once_with(1)
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_mode_specific_positions() -> None:
     """Test async_set_swing_mode for specific positions."""
     mock_client = MagicMock()
@@ -661,7 +661,7 @@ async def test_async_set_swing_mode_specific_positions() -> None:
     )
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_current_preset_mode_eco() -> None:
     """Test preset_mode for eco mode."""
     mock_client = MagicMock()
@@ -701,7 +701,7 @@ async def test_current_preset_mode_eco() -> None:
         assert preset_mode == PRESET_ECO
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_current_preset_mode_boost() -> None:
     """Test preset_mode for boost mode."""
     mock_client = MagicMock()
@@ -741,7 +741,7 @@ async def test_current_preset_mode_boost() -> None:
         assert preset_mode == PRESET_BOOST
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_current_preset_mode_away() -> None:
     """Test preset_mode for away mode."""
     mock_client = MagicMock()
@@ -781,7 +781,7 @@ async def test_current_preset_mode_away() -> None:
         assert preset_mode == PRESET_AWAY
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_hvac_action_return_none() -> None:
     """Test hvac_action returns None for unknown op_status_desc."""
     mock_client = MagicMock()
@@ -813,7 +813,7 @@ async def test_hvac_action_return_none() -> None:
     assert action is None
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_swing_mode_vertical_only() -> None:
     """Test swing mode when only vertical swing is active."""
     mock_client = MagicMock()
@@ -850,7 +850,7 @@ async def test_swing_mode_vertical_only() -> None:
     assert swing_mode == SWING_VERTICAL
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_swing_mode_vertical_position() -> None:
     """Test swing mode when vertical position is set."""
     mock_client = MagicMock()
@@ -887,7 +887,7 @@ async def test_swing_mode_vertical_position() -> None:
     assert swing_mode == VERTICAL + "3"
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_swing_modes_both_mode() -> None:
     """Test swing modes for Both mode."""
     mock_client = MagicMock()
@@ -925,7 +925,7 @@ async def test_swing_modes_both_mode() -> None:
     assert HORIZONTAL + "2" in swing_modes
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_preset_mode_return_none() -> None:
     """Test preset_mode returns PRESET_NONE when no modes are active."""
     mock_client = MagicMock()
@@ -962,7 +962,7 @@ async def test_preset_mode_return_none() -> None:
         assert preset_mode == PRESET_NONE
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_swing_mode_both_active() -> None:
     """Test swing mode when both vertical and horizontal swing are active."""
     mock_client = MagicMock()
@@ -999,7 +999,7 @@ async def test_swing_mode_both_active() -> None:
     assert swing_mode == SWING_BOTH
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_preset_mode_min_heat_active() -> None:
     """Test preset_mode returns PRESET_AWAY when min_heat is active."""
     mock_client = MagicMock()
@@ -1039,7 +1039,7 @@ async def test_preset_mode_min_heat_active() -> None:
         assert preset_mode == PRESET_AWAY
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_preset_mode_final_return_none() -> None:
     """Test preset_mode returns PRESET_NONE at the final return statement."""
     mock_client = MagicMock()
@@ -1343,7 +1343,7 @@ def test_climate_methods_exist() -> None:
         assert callable(getattr(climate, method_name))
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_target_temperature_api_failure() -> None:
     """Test async_target_temperature with API failure."""
     mock_client = MagicMock()
@@ -1373,7 +1373,7 @@ async def test_async_target_temperature_api_failure() -> None:
     assert result is None
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_update_api_failure() -> None:
     """Test async_update with API failure."""
     mock_client = MagicMock()
@@ -1403,7 +1403,7 @@ async def test_async_update_api_failure() -> None:
     await climate.async_update()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_update_current_temperature_failure() -> None:
     """Test async_update with current temperature API failure."""
     mock_client = MagicMock()
@@ -1448,7 +1448,7 @@ async def test_async_update_current_temperature_failure() -> None:
         await climate.async_update()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_update_refresh_temperature_failure() -> None:
     """Test async_update with refresh temperature failure."""
     mock_client = MagicMock()
@@ -1496,7 +1496,7 @@ async def test_async_update_refresh_temperature_failure() -> None:
         await climate.async_update()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_retry_api_call_success() -> None:
     """Test _async_retry_api_call with successful API call."""
 
@@ -1507,7 +1507,7 @@ async def test_async_retry_api_call_success() -> None:
     assert result == "success"
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_retry_api_call_failure_max_retries() -> None:
     """Test _async_retry_api_call with failure after max retries."""
     call_count = 0
@@ -1523,7 +1523,7 @@ async def test_async_retry_api_call_failure_max_retries() -> None:
     assert call_count == 2  # Should have been called max_retries times
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_retry_api_call_success_after_retry() -> None:
     """Test _async_retry_api_call with success after retry."""
     call_count = 0
@@ -1540,7 +1540,7 @@ async def test_async_retry_api_call_success_after_retry() -> None:
     assert call_count == 2
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_retry_api_call_unexpected_error() -> None:
     """Test _async_retry_api_call with unexpected error."""
 
@@ -1687,7 +1687,7 @@ def test_current_temperature_property_none() -> None:
     assert temperature is None
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_temperature() -> None:
     """Test async_set_temperature method."""
     mock_client = MagicMock()
@@ -1714,7 +1714,7 @@ async def test_async_set_temperature() -> None:
     climate._fujitsu_device.async_change_temperature.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_temperature_none() -> None:
     """Test async_set_temperature with None temperature."""
     mock_client = MagicMock()
@@ -1741,7 +1741,7 @@ async def test_async_set_temperature_none() -> None:
     climate._fujitsu_device.async_change_temperature.assert_not_called()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_hvac_mode_heat() -> None:
     """Test async_set_hvac_mode for heat mode."""
     mock_client = MagicMock()
@@ -1766,7 +1766,7 @@ async def test_async_set_hvac_mode_heat() -> None:
     climate._fujitsu_device.async_change_operation_mode.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_hvac_mode_cool() -> None:
     """Test async_set_hvac_mode for cool mode."""
     mock_client = MagicMock()
@@ -1791,7 +1791,7 @@ async def test_async_set_hvac_mode_cool() -> None:
     climate._fujitsu_device.async_change_operation_mode.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_hvac_mode_off() -> None:
     """Test async_set_hvac_mode for off mode."""
     mock_client = MagicMock()
@@ -1816,7 +1816,7 @@ async def test_async_set_hvac_mode_off() -> None:
     climate._fujitsu_device.async_turnOff.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_turn_on() -> None:
     """Test async_turn_on method."""
     mock_client = MagicMock()
@@ -1841,7 +1841,7 @@ async def test_async_turn_on() -> None:
     climate._fujitsu_device.async_turnOn.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_turn_off() -> None:
     """Test async_turn_off method."""
     mock_client = MagicMock()
@@ -1866,7 +1866,7 @@ async def test_async_turn_off() -> None:
     climate._fujitsu_device.async_turnOff.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_fan_mode_high() -> None:
     """Test async_set_fan_mode for high speed."""
     mock_client = MagicMock()
@@ -1891,7 +1891,7 @@ async def test_async_set_fan_mode_high() -> None:
     climate._fujitsu_device.async_changeFanSpeed.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_fan_mode_auto() -> None:
     """Test async_set_fan_mode for auto speed."""
     mock_client = MagicMock()
@@ -1916,7 +1916,7 @@ async def test_async_set_fan_mode_auto() -> None:
     climate._fujitsu_device.async_changeFanSpeed.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_mode_both() -> None:
     """Test async_set_swing_mode for both directions."""
     mock_client = MagicMock()
@@ -1943,7 +1943,7 @@ async def test_async_set_swing_mode_both() -> None:
     climate._fujitsu_device.async_set_af_horizontal_swing.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_preset_mode_eco() -> None:
     """Test async_set_preset_mode for eco mode."""
     mock_client = MagicMock()
@@ -2011,7 +2011,7 @@ async def test_async_set_preset_mode_eco() -> None:
     climate._fujitsu_device.async_economy_mode_on.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_preset_mode_boost() -> None:
     """Test async_set_preset_mode for boost mode."""
     mock_client = MagicMock()
@@ -2079,7 +2079,7 @@ async def test_async_set_preset_mode_boost() -> None:
     climate._fujitsu_device.async_powerful_mode_on.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_preset_mode_away() -> None:
     """Test async_set_preset_mode for away mode."""
     mock_client = MagicMock()
@@ -2147,7 +2147,7 @@ async def test_async_set_preset_mode_away() -> None:
     climate._fujitsu_device.async_min_heat_mode_on.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_preset_mode_none() -> None:
     """Test async_set_preset_mode for none mode."""
     mock_client = MagicMock()
@@ -2897,7 +2897,7 @@ def test_climate_current_preset_mode() -> None:
                 assert hasattr(climate, attr)  # Property exists and is accessible
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_setup_entry_success() -> None:
     """Test successful climate setup entry."""
     # Mock Home Assistant objects
@@ -2956,7 +2956,7 @@ async def test_async_setup_entry_success() -> None:
     assert len(entities) == 2  # Two devices
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_setup_entry_auth_failure() -> None:
     """Test climate setup entry with authentication failure."""
     # Mock Home Assistant objects
@@ -3005,7 +3005,7 @@ async def test_async_setup_entry_auth_failure() -> None:
     mock_async_add_entities.assert_not_called()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_setup_entry_no_devices() -> None:
     """Test climate setup entry with no devices."""
     # Mock Home Assistant objects
@@ -3368,7 +3368,7 @@ def test_swing_horizontal_mode_property_vane_horizontal_exception() -> None:
     assert swing_horizontal_mode is None
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_mode_invalid_vertical_position() -> None:
     """Test async_set_swing_mode with invalid vertical position."""
     mock_client = MagicMock()
@@ -3393,7 +3393,7 @@ async def test_async_set_swing_mode_invalid_vertical_position() -> None:
         await climate.async_set_swing_mode("Vertical_abc")
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_mode_invalid_horizontal_position() -> None:
     """Test async_set_swing_mode with invalid horizontal position."""
     mock_client = MagicMock()
@@ -3517,7 +3517,7 @@ def test_swing_horizontal_modes_property_exception() -> None:
     assert swing_horizontal_modes is None
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_horizontal_mode_supported() -> None:
     """Test async_set_swing_horizontal_mode when supported."""
     mock_client = MagicMock()
@@ -3542,7 +3542,7 @@ async def test_async_set_swing_horizontal_mode_supported() -> None:
     mock_device.async_set_af_horizontal_swing.assert_called_once_with(1)
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_horizontal_mode_position() -> None:
     """Test async_set_swing_horizontal_mode with specific position."""
     mock_client = MagicMock()
@@ -3567,7 +3567,7 @@ async def test_async_set_swing_horizontal_mode_position() -> None:
     mock_device.async_set_vane_horizontal_position.assert_called_once_with(2)
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_horizontal_mode_invalid_value() -> None:
     """Test async_set_swing_horizontal_mode with invalid value raises error."""
     mock_client = MagicMock()
@@ -3592,7 +3592,7 @@ async def test_async_set_swing_horizontal_mode_invalid_value() -> None:
         await climate.async_set_swing_horizontal_mode("off")
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_horizontal_mode_not_supported() -> None:
     """Test async_set_swing_horizontal_mode when not supported."""
     mock_client = MagicMock()
@@ -3615,7 +3615,7 @@ async def test_async_set_swing_horizontal_mode_not_supported() -> None:
     await climate.async_set_swing_horizontal_mode("horizontal")
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_horizontal_mode_exception() -> None:
     """Test async_set_swing_horizontal_mode with exception."""
     mock_client = MagicMock()
@@ -3688,7 +3688,7 @@ def test_supported_features_without_horizontal_swing() -> None:
     assert ClimateEntityFeature.SWING_HORIZONTAL_MODE not in features
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_mode_empty_vertical_position() -> None:
     """Test async_set_swing_mode with empty vertical position."""
     mock_client = MagicMock()
@@ -3711,7 +3711,7 @@ async def test_async_set_swing_mode_empty_vertical_position() -> None:
         await climate.async_set_swing_mode("Vertical_")
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_mode_empty_horizontal_position() -> None:
     """Test async_set_swing_mode with empty horizontal position."""
     mock_client = MagicMock()
@@ -3734,7 +3734,7 @@ async def test_async_set_swing_mode_empty_horizontal_position() -> None:
         await climate.async_set_swing_mode("Horizontal_")
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_horizontal_mode_string_modes_list() -> None:
     """Test async_set_swing_horizontal_mode when modes_list is a string."""
     mock_client = MagicMock()
@@ -3759,7 +3759,7 @@ async def test_async_set_swing_horizontal_mode_string_modes_list() -> None:
     mock_device.async_set_af_horizontal_swing.assert_called_once_with(1)
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio  # type: ignore[untyped-decorator]
 async def test_async_set_swing_horizontal_mode_invalid_position() -> None:
     """Test async_set_swing_horizontal_mode with invalid position string."""
     mock_client = MagicMock()
