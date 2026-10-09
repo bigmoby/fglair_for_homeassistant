@@ -3,6 +3,7 @@
 import asyncio
 from contextlib import suppress
 from datetime import datetime
+from functools import partial
 import logging
 from typing import Any
 
@@ -37,7 +38,11 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.exceptions import (
+    HomeAssistantError,
+    PlatformNotReady,
+    ServiceValidationError,
+)
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
@@ -155,6 +160,78 @@ FUJITSU_TO_ACTION_LOOKUP = {
 }
 
 
+def _stable_unique_id(dsn: str) -> str:
+    """Return the DSN-based unique ID of a climate entity."""
+    return "_".join([dsn, "climate"])
+
+
+async def _async_migrate_legacy_unique_ids(
+    hass: HomeAssistant,
+    entry: ConfigEntry,
+    fglair_api_client: FGLairApiClient,
+    devices: list[str],
+) -> None:
+    """Migrate legacy name-based unique IDs to the stable DSN-based ones.
+
+    Runs before entities are added: if it ran later, Home Assistant would
+    register a fresh DSN-based entry next to the legacy one. Device names are
+    only fetched while this config entry still owns non DSN-based entities.
+    """
+    registry = er.async_get(hass)
+    stable_unique_ids = {_stable_unique_id(dsn) for dsn in devices}
+    legacy_entity_ids = {
+        reg_entry.unique_id: reg_entry.entity_id
+        for reg_entry in er.async_entries_for_config_entry(registry, entry.entry_id)
+        if reg_entry.domain == CLIMATE_DOMAIN
+        and reg_entry.unique_id not in stable_unique_ids
+    }
+    if not legacy_entity_ids:
+        return
+
+    for dsn in devices:
+        try:
+            properties = await _async_retry_api_call(
+                partial(fglair_api_client.async_get_device_properties, dsn)
+            )
+        except HomeAssistantError as ex:
+            # Adding entities now would orphan the legacy ones: retry later
+            raise PlatformNotReady(
+                f"Unable to read name of device {dsn} to migrate its unique ID"
+            ) from ex
+
+        name = get_prop_from_json("device_name", properties).get("value")
+        if not name:
+            continue
+
+        legacy_unique_id = "_".join([name, "climate"])
+        stable_unique_id = _stable_unique_id(dsn)
+        legacy_entity_id = legacy_entity_ids.pop(legacy_unique_id, None)
+        if legacy_entity_id is None:
+            continue
+
+        stable_entity_id = registry.async_get_entity_id(
+            CLIMATE_DOMAIN, DOMAIN, stable_unique_id
+        )
+        if stable_entity_id is not None:
+            _LOGGER.warning(
+                "Cannot migrate climate entity [%s] to stable unique ID [%s]: "
+                "already used by [%s]. Remove [%s] manually",
+                legacy_entity_id,
+                stable_unique_id,
+                stable_entity_id,
+                legacy_entity_id,
+            )
+            continue
+
+        _LOGGER.info(
+            "Migrating climate entity [%s] unique ID from [%s] to [%s]",
+            legacy_entity_id,
+            legacy_unique_id,
+            stable_unique_id,
+        )
+        registry.async_update_entity(legacy_entity_id, new_unique_id=stable_unique_id)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -183,6 +260,8 @@ async def async_setup_entry(
 
     devices = await fglair_api_client.async_get_devices_dsn()
 
+    await _async_migrate_legacy_unique_ids(hass, entry, fglair_api_client, devices)
+
     entities = []
 
     for dsn in devices:
@@ -195,13 +274,13 @@ async def async_setup_entry(
         )
         entities.append(
             FujitsuClimate(
-                fglair_api_client,
-                dsn,
-                region,
-                tokenpath,
-                temperature_offset,
-                hass,
-                coordinator,
+                fglair_api_client=fglair_api_client,
+                dsn=dsn,
+                region=region,
+                tokenpath=tokenpath,
+                temperature_offset=temperature_offset,
+                hass=hass,
+                coordinator=coordinator,
             )
         )
 
@@ -216,6 +295,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
 
     def __init__(
         self,
+        *,
         fglair_api_client: FGLairApiClient,
         dsn: str,
         region: str,
@@ -233,7 +313,6 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         self._temperature_offset = temperature_offset
         self._tokenpath = tokenpath
         self._hass = hass
-        self._legacy_unique_id_migration_checked = False
         self._fujitsu_device = SplitAC(
             self._dsn, self._fglairapi_client, tokenpath, temperature_offset
         )
@@ -459,54 +538,6 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         _LOGGER.debug("Turning off FujitsuClimate device [%s]", self._name)
         await _async_retry_api_call(self._fujitsu_device.async_turnOff)
 
-    def _migrate_legacy_unique_id(self) -> None:
-        """Migrate a legacy name-based unique ID to the stable DSN-based ID."""
-        if self._legacy_unique_id_migration_checked:
-            return
-
-        self._legacy_unique_id_migration_checked = True
-
-        legacy_unique_id = "_".join([self._name, "climate"])
-        stable_unique_id = self.unique_id
-
-        if legacy_unique_id == stable_unique_id:
-            return
-
-        registry = er.async_get(self._hass)
-
-        legacy_entity_id = registry.async_get_entity_id(
-            CLIMATE_DOMAIN,
-            DOMAIN,
-            legacy_unique_id,
-        )
-        if legacy_entity_id is None:
-            return
-
-        stable_entity_id = registry.async_get_entity_id(
-            CLIMATE_DOMAIN,
-            DOMAIN,
-            stable_unique_id,
-        )
-        if stable_entity_id is not None:
-            _LOGGER.debug(
-                "Skipping legacy unique ID migration for device [%s]: "
-                "stable unique ID [%s] already belongs to [%s]",
-                self._name,
-                stable_unique_id,
-                stable_entity_id,
-            )
-            return
-
-        _LOGGER.info(
-            "Migrating climate entity unique ID from [%s] to stable DSN identity [%s]",
-            legacy_unique_id,
-            stable_unique_id,
-        )
-        registry.async_update_entity(
-            legacy_entity_id,
-            new_unique_id=stable_unique_id,
-        )
-
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self) -> None:
         """Retrieve latest state."""
@@ -529,7 +560,6 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         )
 
         self._name = self.name
-        self._migrate_legacy_unique_id()
         self._unique_id = self.unique_id
         self._aux_heat = self.is_aux_heat_on
 
@@ -1059,7 +1089,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
     @property
     def unique_id(self) -> str:
         """Return the unique ID for this thermostat."""
-        return "_".join([self._dsn, "climate"])
+        return _stable_unique_id(self._dsn)
 
     @property
     def should_poll(self) -> bool:

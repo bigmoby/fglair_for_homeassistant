@@ -43,6 +43,7 @@ class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[c
 
     async def _create_entry(  # pylint: disable=R0913
         self,
+        *,
         username: str,
         password: str,
         region: str,
@@ -97,12 +98,12 @@ class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[c
             return self.async_abort(reason="cannot_connect")
 
         return await self._create_entry(
-            username,
-            password,
-            region,
-            tokenpath,
-            temperature_offset,
-            acquired_token,
+            username=username,
+            password=password,
+            region=region,
+            tokenpath=tokenpath,
+            temperature_offset=temperature_offset,
+            acquired_token=acquired_token,
         )
 
     async def async_step_user(

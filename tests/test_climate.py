@@ -91,128 +91,6 @@ def test_climate_unique_id_uses_stable_dsn() -> None:
     assert climate.unique_id == "test-dsn_climate"
 
 
-def test_climate_migrates_legacy_name_based_unique_id() -> None:
-    """Test migration from the legacy name-based unique ID."""
-    mock_client = MagicMock()
-    mock_coordinator = MagicMock()
-    mock_hass = MagicMock()
-    mock_registry = MagicMock()
-
-    climate = FujitsuClimate(
-        fglair_api_client=mock_client,
-        dsn="test-dsn",
-        region="eu",
-        tokenpath=DEFAULT_TOKEN_PATH,
-        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
-        hass=mock_hass,
-        coordinator=mock_coordinator,
-    )
-    climate._name = "Legacy Device"
-
-    mock_registry.async_get_entity_id.side_effect = [
-        "climate.legacy_device",
-        None,
-    ]
-
-    with patch(
-        "custom_components.fglair_heatpump_controller.climate.er.async_get",
-        return_value=mock_registry,
-    ):
-        climate._migrate_legacy_unique_id()
-        climate._migrate_legacy_unique_id()
-
-    mock_registry.async_update_entity.assert_called_once_with(
-        "climate.legacy_device",
-        new_unique_id="test-dsn_climate",
-    )
-    assert mock_registry.async_get_entity_id.call_count == 2
-
-
-def test_climate_does_not_overwrite_existing_stable_unique_id() -> None:
-    """Test migration collision handling for an existing DSN identity."""
-    mock_client = MagicMock()
-    mock_coordinator = MagicMock()
-    mock_hass = MagicMock()
-    mock_registry = MagicMock()
-
-    climate = FujitsuClimate(
-        fglair_api_client=mock_client,
-        dsn="test-dsn",
-        region="eu",
-        tokenpath=DEFAULT_TOKEN_PATH,
-        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
-        hass=mock_hass,
-        coordinator=mock_coordinator,
-    )
-    climate._name = "Legacy Device"
-
-    mock_registry.async_get_entity_id.side_effect = [
-        "climate.legacy_device",
-        "climate.pompdur",
-    ]
-
-    with patch(
-        "custom_components.fglair_heatpump_controller.climate.er.async_get",
-        return_value=mock_registry,
-    ):
-        climate._migrate_legacy_unique_id()
-
-    mock_registry.async_update_entity.assert_not_called()
-
-
-def test_climate_migration_ignores_missing_legacy_entity() -> None:
-    """Test migration when no legacy registry entity exists."""
-    mock_client = MagicMock()
-    mock_coordinator = MagicMock()
-    mock_hass = MagicMock()
-    mock_registry = MagicMock()
-
-    climate = FujitsuClimate(
-        fglair_api_client=mock_client,
-        dsn="test-dsn",
-        region="eu",
-        tokenpath=DEFAULT_TOKEN_PATH,
-        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
-        hass=mock_hass,
-        coordinator=mock_coordinator,
-    )
-    climate._name = "Legacy Device"
-    mock_registry.async_get_entity_id.return_value = None
-
-    with patch(
-        "custom_components.fglair_heatpump_controller.climate.er.async_get",
-        return_value=mock_registry,
-    ):
-        climate._migrate_legacy_unique_id()
-
-    mock_registry.async_update_entity.assert_not_called()
-
-
-def test_climate_migration_skips_identical_legacy_and_stable_ids() -> None:
-    """Test migration when the reported name already matches the DSN."""
-    mock_client = MagicMock()
-    mock_coordinator = MagicMock()
-    mock_hass = MagicMock()
-
-    climate = FujitsuClimate(
-        fglair_api_client=mock_client,
-        dsn="test-dsn",
-        region="eu",
-        tokenpath=DEFAULT_TOKEN_PATH,
-        temperature_offset=DEFAULT_TEMPERATURE_OFFSET,
-        hass=mock_hass,
-        coordinator=mock_coordinator,
-    )
-    climate._name = "test-dsn"
-
-    with patch(
-        "custom_components.fglair_heatpump_controller.climate.er.async_get"
-    ) as mock_registry_get:
-        climate._migrate_legacy_unique_id()
-
-    mock_registry_get.assert_not_called()
-
-
 def test_climate_name() -> None:
     """Test climate entity name."""
     mock_client = MagicMock()
@@ -3054,6 +2932,10 @@ async def test_async_setup_entry_success() -> None:
             "async_get_clientsession",
             return_value=MagicMock(),
         ),
+        patch(
+            "custom_components.fglair_heatpump_controller.climate."
+            "_async_migrate_legacy_unique_ids",
+        ) as mock_migrate,
     ):
         await async_setup_entry(mock_hass, mock_entry, mock_async_add_entities)
 
@@ -3062,6 +2944,11 @@ async def test_async_setup_entry_success() -> None:
 
     # Verify devices were fetched
     mock_api_client.async_get_devices_dsn.assert_called_once()
+
+    # Verify legacy unique IDs are migrated before entities are added
+    mock_migrate.assert_awaited_once_with(
+        mock_hass, mock_entry, mock_api_client, ["device1", "device2"]
+    )
 
     # Verify entities were added
     mock_async_add_entities.assert_called_once()
@@ -3103,13 +2990,18 @@ async def test_async_setup_entry_auth_failure() -> None:
             "async_get_clientsession",
             return_value=MagicMock(),
         ),
+        patch(
+            "custom_components.fglair_heatpump_controller.climate."
+            "_async_migrate_legacy_unique_ids",
+        ) as mock_migrate,
     ):
         await async_setup_entry(mock_hass, mock_entry, mock_async_add_entities)
 
     # Verify authentication was called
     mock_api_client.async_authenticate.assert_called_once()
 
-    # Verify no entities were added due to auth failure
+    # Verify no migration and no entities due to auth failure
+    mock_migrate.assert_not_called()
     mock_async_add_entities.assert_not_called()
 
 
@@ -3148,6 +3040,10 @@ async def test_async_setup_entry_no_devices() -> None:
             "async_get_clientsession",
             return_value=MagicMock(),
         ),
+        patch(
+            "custom_components.fglair_heatpump_controller.climate."
+            "_async_migrate_legacy_unique_ids",
+        ) as mock_migrate,
     ):
         await async_setup_entry(mock_hass, mock_entry, mock_async_add_entities)
 
@@ -3156,6 +3052,8 @@ async def test_async_setup_entry_no_devices() -> None:
 
     # Verify devices were fetched
     mock_api_client.async_get_devices_dsn.assert_called_once()
+
+    mock_migrate.assert_awaited_once_with(mock_hass, mock_entry, mock_api_client, [])
 
     # Verify no entities were added (empty list)
     mock_async_add_entities.assert_called_once()
