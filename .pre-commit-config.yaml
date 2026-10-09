@@ -24,8 +24,6 @@ repos:
     rev: 7.4.1
     hooks:
       - id: flake8
-        additional_dependencies:
-          - pydocstyle==6.3.0
   - repo: local
     hooks:
       # Runs in the project environment so Home Assistant and pytest types are
