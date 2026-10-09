@@ -26,17 +26,16 @@ repos:
       - id: flake8
         additional_dependencies:
           - pydocstyle==6.3.0
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.4.0
-    hooks:
-      - id: mypy
-        args: [--strict]
-        language: python
-        language_version: python3.14
-        additional_dependencies:
-          - "pydantic>=1.10.12"
   - repo: local
     hooks:
+      # Runs in the project environment so Home Assistant and pytest types are
+      # resolved: an isolated hook env would see them as Any.
+      - id: mypy
+        name: mypy
+        entry: python3 -m mypy --strict custom_components tests
+        language: system
+        types: [python]
+        pass_filenames: false
       - id: pytest
         name: pytest
         entry: python3 -m pytest tests/ -v

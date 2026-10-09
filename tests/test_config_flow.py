@@ -2,7 +2,8 @@
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from homeassistant.const import CONF_PASSWORD, CONF_REGION, CONF_USERNAME
+from homeassistant.config_entries import SOURCE_USER
+from homeassistant.const import CONF_PASSWORD, CONF_REGION, CONF_TOKEN, CONF_USERNAME
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 import pytest
@@ -16,6 +17,7 @@ from custom_components.fglair_heatpump_controller.const import (
     CONF_TOKENPATH,
     DEFAULT_TEMPERATURE_OFFSET,
     DEFAULT_TOKEN_PATH,
+    DOMAIN,
 )
 
 
@@ -39,7 +41,7 @@ def test_config_flow_step_user_method_exists() -> None:
     assert callable(handler.async_step_user)
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_async_step_user_no_input() -> None:
     """Test async_step_user with no user input."""
     handler = FGLairIntegrationFlowHandler()
@@ -52,7 +54,7 @@ async def test_async_step_user_no_input() -> None:
     assert "data_schema" in result
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_async_step_user_with_input() -> None:
     """Test async_step_user with user input."""
     handler = FGLairIntegrationFlowHandler()
@@ -80,7 +82,7 @@ async def test_async_step_user_with_input() -> None:
         )
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_create_client_success() -> None:
     """Test _create_client success."""
     handler = FGLairIntegrationFlowHandler()
@@ -121,7 +123,7 @@ async def test_create_client_success() -> None:
         )
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_create_client_timeout_error() -> None:
     """Test _create_client with timeout error."""
     handler = FGLairIntegrationFlowHandler()
@@ -153,7 +155,7 @@ async def test_create_client_timeout_error() -> None:
         assert result["reason"] == "cannot_connect"
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_create_client_connection_error() -> None:
     """Test _create_client with connection error."""
     handler = FGLairIntegrationFlowHandler()
@@ -185,7 +187,7 @@ async def test_create_client_connection_error() -> None:
         assert result["reason"] == "cannot_connect"
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_create_client_blank_password() -> None:
     """Test _create_client with blank password."""
     handler = FGLairIntegrationFlowHandler()
@@ -201,7 +203,7 @@ async def test_create_client_blank_password() -> None:
         )
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_create_client_blank_region() -> None:
     """Test _create_client with blank region."""
     handler = FGLairIntegrationFlowHandler()
@@ -217,7 +219,7 @@ async def test_create_client_blank_region() -> None:
         )
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_create_entry_success() -> None:
     """Test _create_entry success."""
     handler = FGLairIntegrationFlowHandler()
@@ -245,7 +247,7 @@ async def test_create_entry_success() -> None:
         assert result["data"][CONF_TEMPERATURE_OFFSET] == 1.0
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_create_entry_unique_id_configured() -> None:
     """Test _create_entry with already configured unique ID."""
     handler = FGLairIntegrationFlowHandler()
@@ -314,7 +316,7 @@ def test_handler_class_properties() -> None:
     assert handler.hass is None
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_create_client_with_different_regions() -> None:
     """Test _create_client with different regions."""
     handler = FGLairIntegrationFlowHandler()
@@ -360,7 +362,7 @@ async def test_create_client_with_different_regions() -> None:
             )
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_create_client_with_different_temperature_offsets() -> None:
     """Test _create_client with different temperature offsets."""
     handler = FGLairIntegrationFlowHandler()
@@ -405,7 +407,7 @@ async def test_create_client_with_different_temperature_offsets() -> None:
             )
 
 
-@pytest.mark.asyncio  # type: ignore[untyped-decorator]
+@pytest.mark.asyncio
 async def test_create_client_with_special_characters() -> None:
     """Test _create_client with special characters in inputs."""
     handler = FGLairIntegrationFlowHandler()
@@ -451,3 +453,47 @@ async def test_create_client_with_special_characters() -> None:
             temperature_offset=1.0,
             acquired_token="special_token",
         )
+
+
+@pytest.mark.usefixtures("enable_custom_integrations")
+async def test_user_flow_creates_entry(hass: HomeAssistant) -> None:
+    """Test the user flow end to end on a real Home Assistant instance."""
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": SOURCE_USER}
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "user"
+
+    client = MagicMock()
+    client.async_authenticate = AsyncMock(return_value="token")
+    with (
+        patch(
+            "custom_components.fglair_heatpump_controller.config_flow.FGLairApiClient",
+            return_value=client,
+        ),
+        patch(
+            "custom_components.fglair_heatpump_controller.async_setup_entry",
+            return_value=True,
+        ),
+    ):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"],
+            {
+                CONF_USERNAME: "user@example.com",
+                CONF_PASSWORD: "secret",
+                CONF_REGION: "eu",
+                CONF_TOKENPATH: "token.txt",
+                CONF_TEMPERATURE_OFFSET: "1.5",
+            },
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["title"] == "user@example.com"
+    assert result["data"] == {
+        CONF_USERNAME: "user@example.com",
+        CONF_PASSWORD: "secret",
+        CONF_REGION: "eu",
+        CONF_TOKENPATH: "token.txt",
+        CONF_TEMPERATURE_OFFSET: 1.5,
+        CONF_TOKEN: "token",
+    }

@@ -7,7 +7,7 @@ import logging
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from homeassistant.components.climate import DOMAIN as CLIMATE_DOMAIN
+from homeassistant.components.climate.const import DOMAIN as CLIMATE_DOMAIN
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import CONF_PASSWORD, CONF_REGION, CONF_USERNAME
 from homeassistant.core import HomeAssistant
@@ -70,13 +70,13 @@ def _properties(name: str | None) -> list[dict[str, Any]]:
     return payload
 
 
-@pytest.fixture  # type: ignore[untyped-decorator]
+@pytest.fixture
 def device_names() -> dict[str, str | None]:
     """Device names reported by the FGLair API, keyed by DSN."""
     return {DSN_1: "Living Room"}
 
 
-@pytest.fixture  # type: ignore[untyped-decorator]
+@pytest.fixture
 def mock_client(
     device_names: dict[str, str | None],
 ) -> Iterator[MagicMock]:
@@ -105,7 +105,7 @@ def mock_client(
         yield client
 
 
-@pytest.fixture  # type: ignore[untyped-decorator]
+@pytest.fixture
 def config_entry(hass: HomeAssistant) -> MockConfigEntry:
     """Return a config entry added to hass."""
     entry = MockConfigEntry(
@@ -160,7 +160,7 @@ async def _setup(hass: HomeAssistant, config_entry: MockConfigEntry) -> None:
     assert config_entry.state is ConfigEntryState.LOADED
 
 
-@pytest.mark.usefixtures("mock_client")  # type: ignore[untyped-decorator]
+@pytest.mark.usefixtures("mock_client")
 async def test_new_install_uses_dsn_unique_id(
     hass: HomeAssistant,
     entity_registry: er.EntityRegistry,
@@ -289,9 +289,7 @@ async def test_existing_stable_unique_id_is_not_overwritten(
     assert f"Remove [{legacy_entity_id}] manually" in caplog.text
 
 
-@pytest.mark.parametrize(  # type: ignore[untyped-decorator]
-    "device_names", [{DSN_1: "Living Room", DSN_2: "Living Room"}]
-)
+@pytest.mark.parametrize("device_names", [{DSN_1: "Living Room", DSN_2: "Living Room"}])
 async def test_duplicate_legacy_names_migrate_only_once(
     hass: HomeAssistant,
     entity_registry: er.EntityRegistry,
@@ -332,7 +330,7 @@ async def test_device_without_name_is_skipped(
     }
 
 
-@pytest.mark.usefixtures("mock_client")  # type: ignore[untyped-decorator]
+@pytest.mark.usefixtures("mock_client")
 async def test_other_config_entry_entities_are_not_touched(
     hass: HomeAssistant,
     entity_registry: er.EntityRegistry,
@@ -347,9 +345,9 @@ async def test_other_config_entry_entities_are_not_touched(
 
     await _setup(hass, config_entry)
 
-    assert entity_registry.async_get(other_entity_id).unique_id == (
-        "Living Room_climate"
-    )
+    other_entity = entity_registry.async_get(other_entity_id)
+    assert other_entity is not None
+    assert other_entity.unique_id == "Living Room_climate"
     assert _climate_entries(entity_registry, config_entry) == {
         f"{DSN_1}_climate": "climate.living_room"
     }
