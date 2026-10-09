@@ -348,7 +348,7 @@ def test_coordinator_has_update_methods() -> None:
             assert callable(getattr(coordinator, method))
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_async_setup_entry_success() -> None:
     """Test successful async_setup_entry."""
     mock_hass = MagicMock(spec=HomeAssistant)
@@ -397,7 +397,7 @@ async def test_async_setup_entry_success() -> None:
         mock_coordinator.async_config_entry_first_refresh.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_async_setup_entry_exception() -> None:
     """Test async_setup_entry with exception."""
     mock_hass = MagicMock(spec=HomeAssistant)
@@ -444,7 +444,7 @@ async def test_async_setup_entry_exception() -> None:
         assert result is True  # The function doesn't handle exceptions, it returns True
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_async_unload_entry_success() -> None:
     """Test successful async_unload_entry."""
     mock_hass = MagicMock(spec=HomeAssistant)
@@ -464,7 +464,7 @@ async def test_async_unload_entry_success() -> None:
     assert result is True
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_async_unload_entry_no_coordinator() -> None:
     """Test async_unload_entry with no coordinator."""
     mock_hass = MagicMock(spec=HomeAssistant)
@@ -482,7 +482,7 @@ async def test_async_unload_entry_no_coordinator() -> None:
     assert result is False
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_async_unload_entry_exception() -> None:
     """Test async_unload_entry with exception."""
     mock_hass = MagicMock(spec=HomeAssistant)
@@ -628,7 +628,7 @@ def test_italian_translations() -> None:
     assert "step" in translations["config"]
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_coordinator_async_update_data_success() -> None:
     """Test coordinator _async_update_data method success."""
     mock_hass = MagicMock()
@@ -648,7 +648,7 @@ async def test_coordinator_async_update_data_success() -> None:
     mock_client.async_get_devices_dsn.assert_called_once()
 
 
-@pytest.mark.asyncio  # type: ignore[misc]
+@pytest.mark.asyncio
 async def test_coordinator_async_update_data_exception() -> None:
     """Test coordinator _async_update_data method with exception."""
     mock_hass = MagicMock()

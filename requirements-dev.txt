@@ -1,17 +1,8 @@
 # Development dependencies for FGLair Home Assistant Integration
--r requirements.txt
+-r requirements.test.txt
 
 # Additional development tools
-black>=23.10.1
-flake8>=6.1.0
-isort>=6.1.0
-pydocstyle>=6.3.0
-
-# Testing utilities
-coverage>=7.6.8
-freezegun>=1.5.1
-requests-mock>=1.12.1
-respx>=0.21.1
+flake8>=7.4.1
 
 # Documentation
 sphinx>=9.1.0

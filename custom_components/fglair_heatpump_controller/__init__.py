@@ -55,7 +55,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
-class FglairDataUpdateCoordinator(DataUpdateCoordinator):
+class FglairDataUpdateCoordinator(DataUpdateCoordinator[None]):
     """Class to manage fetching data from the API."""
 
     def __init__(

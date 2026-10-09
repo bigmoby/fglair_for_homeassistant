@@ -4,14 +4,15 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from aiohttp import ClientError
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_PASSWORD, CONF_REGION, CONF_TOKEN, CONF_USERNAME
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+import probatio
 from pyfujitsugeneral.client import FGLairApiClient
 from pyfujitsugeneral.utils import isBlank
-import voluptuous as vol
 
 from .const import (
     CONF_TEMPERATURE_OFFSET,
@@ -23,20 +24,20 @@ from .const import (
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
-DATA_SCHEMA = vol.Schema(
+DATA_SCHEMA = probatio.Schema(
     {
-        vol.Required(CONF_USERNAME, default=""): str,
-        vol.Required(CONF_PASSWORD, default=""): str,
-        vol.Required(CONF_REGION, default="eu"): str,
-        vol.Required(CONF_TOKENPATH, default=DEFAULT_TOKEN_PATH): str,
-        vol.Required(
+        probatio.Required(CONF_USERNAME, default=""): str,
+        probatio.Required(CONF_PASSWORD, default=""): str,
+        probatio.Required(CONF_REGION, default="eu"): str,
+        probatio.Required(CONF_TOKENPATH, default=DEFAULT_TOKEN_PATH): str,
+        probatio.Required(
             CONF_TEMPERATURE_OFFSET, default=DEFAULT_TEMPERATURE_OFFSET
-        ): vol.Coerce(float),
+        ): probatio.Coerce(float),
     }
 )
 
 
-class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[call-arg]
+class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):
     """Handle a config flow."""
 
     VERSION = 1
@@ -94,7 +95,7 @@ class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[c
                 _LOGGER.debug("Invoking authenticate for %s", username)
                 acquired_token = await _client.async_authenticate()
                 _LOGGER.debug("authentication token %s", acquired_token)
-        except (TimeoutError, ClientError, ConnectionError):
+        except TimeoutError, ClientError, ConnectionError:
             return self.async_abort(reason="cannot_connect")
 
         return await self._create_entry(
@@ -108,7 +109,7 @@ class FGLairIntegrationFlowHandler(ConfigFlow, domain=DOMAIN):  # type: ignore[c
 
     async def async_step_user(
         self,
-        user_input: dict | None = None,  # type: ignore[type-arg]
+        user_input: dict[str, Any] | None = None,
     ) -> ConfigFlowResult:
         """User initiated config flow."""
         if user_input is None:
