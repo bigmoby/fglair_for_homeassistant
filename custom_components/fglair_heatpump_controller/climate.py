@@ -7,14 +7,9 @@ from functools import partial
 import logging
 from typing import Any
 
-from homeassistant.components.climate import (
-    DOMAIN as CLIMATE_DOMAIN,
-    PLATFORM_SCHEMA,
-    ClimateEntity,
-    ClimateEntityFeature,
-    HVACAction,
-)
+from homeassistant.components.climate import PLATFORM_SCHEMA, ClimateEntity
 from homeassistant.components.climate.const import (
+    DOMAIN as CLIMATE_DOMAIN,
     FAN_AUTO,
     FAN_DIFFUSE,
     FAN_HIGH,
@@ -27,6 +22,8 @@ from homeassistant.components.climate.const import (
     SWING_BOTH,
     SWING_HORIZONTAL,
     SWING_VERTICAL,
+    ClimateEntityFeature,
+    HVACAction,
     HVACMode,
 )
 from homeassistant.config_entries import ConfigEntry
@@ -50,10 +47,10 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import Throttle
 from homeassistant.util.dt import utcnow
+import probatio
 from pyfujitsugeneral.client import FGLairApiClient
 from pyfujitsugeneral.exceptions import FGLairGeneralException
 from pyfujitsugeneral.splitAC import SplitAC, get_prop_from_json
-import voluptuous as vol
 
 from . import FglairDataUpdateCoordinator
 from .const import (
@@ -110,13 +107,13 @@ SUPPORT_FLAGS: ClimateEntityFeature = (
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
-        vol.Required(CONF_USERNAME): cv.string,
-        vol.Required(CONF_PASSWORD): cv.string,
-        vol.Optional(CONF_REGION): cv.string,
-        vol.Optional("tokenpath", default=DEFAULT_TOKEN_PATH): cv.string,
-        vol.Optional("temperature_offset", default=DEFAULT_TEMPERATURE_OFFSET): vol.All(
-            vol.Coerce(float), vol.Range(min=-5, max=5)
-        ),
+        probatio.Required(CONF_USERNAME): cv.string,
+        probatio.Required(CONF_PASSWORD): cv.string,
+        probatio.Optional(CONF_REGION): cv.string,
+        probatio.Optional("tokenpath", default=DEFAULT_TOKEN_PATH): cv.string,
+        probatio.Optional(
+            "temperature_offset", default=DEFAULT_TEMPERATURE_OFFSET
+        ): probatio.All(probatio.Coerce(float), probatio.Range(min=-5, max=5)),
     }
 )
 
@@ -319,7 +316,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
 
         self._attr_supported_features = SUPPORT_FLAGS
 
-        self._properties = None
+        self._properties: Any = None
         self._name = ""
         self._unique_id: str = ""
         self._aux_heat: bool = False
@@ -515,6 +512,8 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         if op_status_desc == "Normal":
             operation_mode = self._fujitsu_device.get_operation_mode_desc()
             label_state = FUJITSU_TO_HA_STATE.get(operation_mode)
+            if label_state is None:
+                return None
 
             return {
                 HVACMode.HEAT: HVACAction.HEATING,
