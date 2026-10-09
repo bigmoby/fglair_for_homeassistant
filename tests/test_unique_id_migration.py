@@ -70,13 +70,13 @@ def _properties(name: str | None) -> list[dict[str, Any]]:
     return payload
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture  # type: ignore[untyped-decorator]
 def device_names() -> dict[str, str | None]:
     """Device names reported by the FGLair API, keyed by DSN."""
     return {DSN_1: "Living Room"}
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture  # type: ignore[untyped-decorator]
 def mock_client(
     device_names: dict[str, str | None],
 ) -> Iterator[MagicMock]:
@@ -105,7 +105,7 @@ def mock_client(
         yield client
 
 
-@pytest.fixture  # type: ignore[misc]
+@pytest.fixture  # type: ignore[untyped-decorator]
 def config_entry(hass: HomeAssistant) -> MockConfigEntry:
     """Return a config entry added to hass."""
     entry = MockConfigEntry(
@@ -160,7 +160,7 @@ async def _setup(hass: HomeAssistant, config_entry: MockConfigEntry) -> None:
     assert config_entry.state is ConfigEntryState.LOADED
 
 
-@pytest.mark.usefixtures("mock_client")  # type: ignore[misc]
+@pytest.mark.usefixtures("mock_client")  # type: ignore[untyped-decorator]
 async def test_new_install_uses_dsn_unique_id(
     hass: HomeAssistant,
     entity_registry: er.EntityRegistry,
@@ -289,7 +289,7 @@ async def test_existing_stable_unique_id_is_not_overwritten(
     assert f"Remove [{legacy_entity_id}] manually" in caplog.text
 
 
-@pytest.mark.parametrize(  # type: ignore[misc]
+@pytest.mark.parametrize(  # type: ignore[untyped-decorator]
     "device_names", [{DSN_1: "Living Room", DSN_2: "Living Room"}]
 )
 async def test_duplicate_legacy_names_migrate_only_once(
@@ -332,7 +332,7 @@ async def test_device_without_name_is_skipped(
     }
 
 
-@pytest.mark.usefixtures("mock_client")  # type: ignore[misc]
+@pytest.mark.usefixtures("mock_client")  # type: ignore[untyped-decorator]
 async def test_other_config_entry_entities_are_not_touched(
     hass: HomeAssistant,
     entity_registry: er.EntityRegistry,

@@ -1,16 +1,16 @@
 default_language_version:
-  python: python3.13
+  python: python3.14
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.7.0
+    rev: v0.16.10
     hooks:
-      - id: ruff
+      - id: ruff-check
         args:
           - --fix
       - id: ruff-format
         files: ^((custom_components|tests)/.+)?[^/]+\.(py|pyi)$
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
       - id: check-yaml
         args: ["--unsafe"]
@@ -21,18 +21,18 @@ repos:
       - id: check-merge-conflict
       - id: check-case-conflict
   - repo: https://github.com/pycqa/flake8
-    rev: 6.1.0
+    rev: 7.4.1
     hooks:
       - id: flake8
         additional_dependencies:
           - pydocstyle==6.3.0
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.9.0
+    rev: v2.4.0
     hooks:
       - id: mypy
         args: [--strict]
         language: python
-        language_version: python3.13
+        language_version: python3.14
         additional_dependencies:
           - "pydantic>=1.10.12"
   - repo: local
