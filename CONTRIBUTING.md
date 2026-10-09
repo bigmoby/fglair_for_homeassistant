@@ -44,7 +44,8 @@ People *love* thorough bug reports. I'm not even kidding.
 
 ## Use a Consistent Coding Style
 
-Use [black](https://github.com/ambv/black) to make sure the code follows the style.
+Use [Ruff](https://docs.astral.sh/ruff/) (`ruff check` and `ruff format`) to make sure the code follows the style.
+Running `pre-commit run --all-files` applies every check used by the CI.
 
 ## Test your code modification
 
