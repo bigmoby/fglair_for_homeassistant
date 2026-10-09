@@ -7,6 +7,7 @@ import logging
 from typing import Any
 
 from homeassistant.components.climate import (
+    DOMAIN as CLIMATE_DOMAIN,
     PLATFORM_SCHEMA,
     ClimateEntity,
     ClimateEntityFeature,
@@ -37,6 +38,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -231,6 +233,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         self._temperature_offset = temperature_offset
         self._tokenpath = tokenpath
         self._hass = hass
+        self._legacy_unique_id_migration_checked = False
         self._fujitsu_device = SplitAC(
             self._dsn, self._fglairapi_client, tokenpath, temperature_offset
         )
@@ -456,6 +459,54 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         _LOGGER.debug("Turning off FujitsuClimate device [%s]", self._name)
         await _async_retry_api_call(self._fujitsu_device.async_turnOff)
 
+    def _migrate_legacy_unique_id(self) -> None:
+        """Migrate a legacy name-based unique ID to the stable DSN-based ID."""
+        if self._legacy_unique_id_migration_checked:
+            return
+
+        self._legacy_unique_id_migration_checked = True
+
+        legacy_unique_id = "_".join([self._name, "climate"])
+        stable_unique_id = self.unique_id
+
+        if legacy_unique_id == stable_unique_id:
+            return
+
+        registry = er.async_get(self._hass)
+
+        legacy_entity_id = registry.async_get_entity_id(
+            CLIMATE_DOMAIN,
+            DOMAIN,
+            legacy_unique_id,
+        )
+        if legacy_entity_id is None:
+            return
+
+        stable_entity_id = registry.async_get_entity_id(
+            CLIMATE_DOMAIN,
+            DOMAIN,
+            stable_unique_id,
+        )
+        if stable_entity_id is not None:
+            _LOGGER.debug(
+                "Skipping legacy unique ID migration for device [%s]: "
+                "stable unique ID [%s] already belongs to [%s]",
+                self._name,
+                stable_unique_id,
+                stable_entity_id,
+            )
+            return
+
+        _LOGGER.info(
+            "Migrating climate entity unique ID from [%s] to stable DSN identity [%s]",
+            legacy_unique_id,
+            stable_unique_id,
+        )
+        registry.async_update_entity(
+            legacy_entity_id,
+            new_unique_id=stable_unique_id,
+        )
+
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     async def async_update(self) -> None:
         """Retrieve latest state."""
@@ -478,6 +529,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         )
 
         self._name = self.name
+        self._migrate_legacy_unique_id()
         self._unique_id = self.unique_id
         self._aux_heat = self.is_aux_heat_on
 
@@ -1007,7 +1059,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
     @property
     def unique_id(self) -> str:
         """Return the unique ID for this thermostat."""
-        return "_".join([self._name, "climate"])
+        return "_".join([self._dsn, "climate"])
 
     @property
     def should_poll(self) -> bool:
