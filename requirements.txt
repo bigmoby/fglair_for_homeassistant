@@ -7,7 +7,7 @@ pyfujitsugeneral==2.0.36
 aiofiles==25.1.0
 
 # Development and testing dependencies
-pytest-homeassistant-custom-component>=0.13.371
+pytest-homeassistant-custom-component>=0.13.372
 pytest>=9.0.3
 pytest-asyncio>=1.4.0
 pytest-cov>=7.1.0
