@@ -21,7 +21,10 @@ ICON = "mdi:format-quote-close"
 BINARY_SENSOR_DEVICE_CLASS = "connectivity"
 
 # Platforms
-PLATFORMS = [Platform.CLIMATE]
+PLATFORMS = [Platform.CLIMATE, Platform.SENSOR, Platform.BINARY_SENSOR]
+
+# Climate entity -> diagnostic sensors: (dsn, device name, raw property list)
+SIGNAL_PROPERTIES = f"{DOMAIN}_properties"
 
 # No successful poll / no report of the unit for this long -> unavailable
 STALE_AFTER = timedelta(minutes=10)

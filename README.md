@@ -56,6 +56,7 @@ Attention: please, remove from `configuration.yaml` any previous FGLair installa
 - **Horizontal Swing**: Independent horizontal swing control (requires Home Assistant 2024.12+ and compatible air conditioner)
 - **Reliable login**: one shared client for all units that reuses the stored token; logins are throttled (one at a time, a fresh login is shared, after a failed login the next attempt waits 2 min, then 4, 8 ... up to 30 min). If the cloud is not reachable at startup, the integration reports "not ready" and Home Assistant retries by itself
 - **Availability**: a climate entity is unavailable when the last poll is older than 10 minutes or the unit has not reported to the cloud for more than 10 minutes before that poll
+- **Device per air conditioner**: `Indoor temperature` and `Outdoor temperature` sensors, `Connectivity` (unit reports to the cloud) and `Cloud connection` (Home Assistant can poll the cloud), diagnostic sensors `Last poll`, `Last contact`, `Last change`, `Error code`, `Operation status`, `Wi-Fi LED` and every further cloud property with a real value (most of them disabled by default). Translations in English, German, Dutch, Spanish, French and Italian
 
 ## Develop
 

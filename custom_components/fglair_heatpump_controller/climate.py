@@ -42,6 +42,8 @@ from homeassistant.exceptions import (
 )
 from homeassistant.helpers import entity_registry as er
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import Throttle
@@ -64,9 +66,11 @@ from .const import (
     MIN_TEMP,
     MIN_TIME_BETWEEN_UPDATES,
     REFRESH_MINUTES_INTERVAL,
+    SIGNAL_PROPERTIES,
     STALE_AFTER,
     VERTICAL,
 )
+from .sensor import device_info as _device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -144,6 +148,15 @@ def _newest_report(properties: Any) -> datetime | None:
         if stamp is not None and (newest is None or stamp > newest):
             newest = stamp
     return newest
+
+
+def _outdoor_degree(device: Any) -> float | None:
+    """Outdoor temperature in degrees C ((raw - 5000) / 100), None if not supported."""
+    raw = device.get_outdoor_temperature()
+    value = raw.get("value") if isinstance(raw, dict) else None
+    if not isinstance(value, (int, float)) or value in (65535, 0):
+        return None
+    return round((value - 5000) / 100, 1)
 
 
 def device_is_available(
@@ -304,6 +317,8 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
     """Representation of a Fujitsu HVAC device."""
 
     _enable_turn_on_off_backwards_compatibility = False
+    # Translations of the fan modes and icons: translations/*.json, icons.json
+    _attr_translation_key = "fglair"
 
     def __init__(
         self,
@@ -624,6 +639,29 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         self._hvac_modes = SUPPORTED_MODES
         self._preset_modes = [PRESET_NONE, PRESET_ECO, PRESET_BOOST, PRESET_AWAY]
         self._on = self.is_on
+
+        # Feed the diagnostic sensors (sensor.py, binary_sensor.py)
+        extras = {
+            "last_poll": self._last_poll,
+            "last_contact": self._last_contact,
+            "indoor": self._current_temperature,
+            "outdoor": _outdoor_degree(self._fujitsu_device),
+        }
+        store = self._hass.data.setdefault(DOMAIN, {})
+        store.setdefault("properties", {})[self._dsn] = (
+            self._name,
+            self._properties,
+            extras,
+        )
+        store.setdefault("status", {})[self._dsn] = extras
+        async_dispatcher_send(
+            self._hass,
+            SIGNAL_PROPERTIES,
+            self._dsn,
+            self._name,
+            self._properties,
+            extras,
+        )
 
         _LOGGER.debug(
             "FujitsuClimate finish async_update for device [%s]",
@@ -1122,6 +1160,15 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         all units were unavailable, while a unit that really went silent never was.
         """
         return device_is_available(self._last_poll, self._last_contact)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device shared with the diagnostic sensors."""
+        try:
+            name = self.name
+        except KeyError, TypeError:
+            name = None
+        return _device_info(self._dsn, name)
 
     @property
     def unique_id(self) -> str:
