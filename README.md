@@ -54,6 +54,7 @@ Attention: please, remove from `configuration.yaml` any previous FGLair installa
 - **Temperature Control**: Adjustable target temperature with offset support
 - **Vertical Swing**: Full vertical swing control with position settings
 - **Horizontal Swing**: Independent horizontal swing control (requires Home Assistant 2024.12+ and compatible air conditioner)
+- **Reliable login**: one shared client for all units that reuses the stored token; logins are throttled (one at a time, a fresh login is shared, after a failed login the next attempt waits 2 min, then 4, 8 ... up to 30 min). If the cloud is not reachable at startup, the integration reports "not ready" and Home Assistant retries by itself
 
 ## Develop
 

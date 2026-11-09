@@ -41,7 +41,6 @@ from homeassistant.exceptions import (
     ServiceValidationError,
 )
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -239,23 +238,13 @@ async def async_setup_entry(
 
     coordinator: FglairDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    username: str = entry.data[CONF_USERNAME]
-    password: str = entry.data[CONF_PASSWORD]
     region: str = entry.data[CONF_REGION]
     tokenpath: str = entry.data[CONF_TOKENPATH]
     temperature_offset: float = entry.data[CONF_TEMPERATURE_OFFSET]
 
-    fglair_api_client: FGLairApiClient = FGLairApiClient(
-        username, password, region, tokenpath, async_get_clientsession(hass)
-    )
-
-    auth_result = await fglair_api_client.async_authenticate()
-
-    if not auth_result:
-        _LOGGER.error("Unable to authenticate with Fujistsu General")
-        return
-
-    devices = await fglair_api_client.async_get_devices_dsn()
+    # Shared client, already logged in during setup (see __init__.py) - no second login.
+    fglair_api_client: FGLairApiClient = coordinator.client
+    devices = coordinator.devices
 
     await _async_migrate_legacy_unique_ids(hass, entry, fglair_api_client, devices)
 
@@ -571,11 +560,19 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             await self._async_refresh_display_temperature_request(
                 self._fujitsu_device.get_refresh()["data_updated_at"]
             )
-        except (HomeAssistantError, KeyError) as ex:
+        except (
+            HomeAssistantError,
+            FGLairGeneralException,
+            KeyError,
+            TypeError,
+            ValueError,
+        ) as ex:
+            # Timeout or cloud/login error: one line instead of a traceback - it is
+            # retried with the next poll.
             _LOGGER.warning(
-                "Failed to refresh display temperature for device %s: %s",
+                "Failed to request a refresh for device %s: %s",
                 self._name,
-                ex,
+                type(ex).__name__,
             )
 
         self._target_temperature = await self.async_target_temperature()
