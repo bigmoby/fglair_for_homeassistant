@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from datetime import datetime
 import logging
-from typing import Any
+from typing import Any, cast
 
 from homeassistant.components.sensor import (
     RestoreSensor,
@@ -29,7 +29,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import EntityCategory, UnitOfTemperature
+from homeassistant.const import EntityCategory, UnitOfEnergy, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -37,6 +37,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN, SIGNAL_PROPERTIES
+from .energy import BUCKETS, UpstreamMeter
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -161,13 +162,45 @@ async def async_setup_entry(
 ) -> None:
     """Set up the diagnostic sensors; entities are created when properties arrive."""
     manager = _DiagnosticsManager(async_add_entities)
+    energy = _EnergyManager(hass, async_add_entities)
     entry.async_on_unload(
         async_dispatcher_connect(hass, SIGNAL_PROPERTIES, manager.async_update)
+    )
+    entry.async_on_unload(
+        async_dispatcher_connect(hass, SIGNAL_PROPERTIES, energy.async_update)
     )
     for dsn, (name, properties, extras) in list(
         hass.data.get(DOMAIN, {}).get("properties", {}).items()
     ):
         manager.async_update(dsn, name, properties, extras)
+        energy.async_update(dsn, name, properties, extras)
+
+
+class _EnergyManager:
+    """Energy counters per operating mode for devices with an upstream meter (options).
+
+    Created with the first data of a device (then its name is known).
+    """
+
+    def __init__(
+        self, hass: HomeAssistant, async_add_entities: AddEntitiesCallback
+    ) -> None:
+        self._hass = hass
+        self._add = async_add_entities
+        self._done: set[str] = set()
+
+    @callback
+    def async_update(self, dsn: str, device_name: str | None, *_: Any) -> None:
+        meter: UpstreamMeter | None = (
+            self._hass.data.get(DOMAIN, {}).get("meters", {}).get(dsn)
+        )
+        if meter is None or dsn in self._done:
+            return
+        self._done.add(dsn)
+        total = _EnergySensor(dsn, device_name, meter, "total")
+        self._add(
+            [_EnergySensor(dsn, device_name, meter, b) for b in BUCKETS] + [total]
+        )
 
 
 class _DiagnosticsManager:
@@ -342,6 +375,66 @@ class _TemperatureSensor(_BaseSensor):
 
     def set_value(self, value: Any) -> None:
         self._attr_native_value = value if isinstance(value, (int, float)) else None
+
+
+class _EnergySensor(_BaseSensor, RestoreSensor):
+    """Energy of one operating mode (or total) from the upstream meter, in kWh."""
+
+    _attr_entity_category = None
+    _attr_device_class = SensorDeviceClass.ENERGY
+    _attr_state_class = SensorStateClass.TOTAL_INCREASING
+    _attr_native_unit_of_measurement = UnitOfEnergy.KILO_WATT_HOUR
+    _attr_suggested_display_precision = 2
+
+    def __init__(
+        self, dsn: str, device_name: str | None, meter: UpstreamMeter, bucket: str
+    ) -> None:
+        super().__init__(
+            dsn, device_name, f"energy_{bucket}", f"Energy {bucket}", f"energy_{bucket}"
+        )
+        self._meter = meter
+        self._bucket = bucket
+        self._attr_native_value = 0.0
+
+    async def async_added_to_hass(self) -> None:
+        await super().async_added_to_hass()
+        restored_reading = None
+        if (last := await self.async_get_last_sensor_data()) is not None:
+            try:
+                self._attr_native_value = float(str(last.native_value or 0))
+            except TypeError, ValueError:
+                self._attr_native_value = 0.0
+        if self._bucket == "total":
+            if (st := await self.async_get_last_state()) is not None:
+                restored_reading = st.attributes.get("source_reading")
+            self._meter.restore_last_energy(
+                float(restored_reading)
+                if isinstance(restored_reading, (int, float))
+                else None
+            )
+        self.async_on_remove(self._meter.add_energy_listener(self._async_add))
+        self._update_attrs()
+        self.async_write_ha_state()
+
+    def _update_attrs(self) -> None:
+        attrs: dict[str, Any] = {"source": self._meter.source}
+        if self._bucket == "total" and self._meter.last_energy is not None:
+            attrs["source_reading"] = round(self._meter.last_energy, 4)
+        self._attr_extra_state_attributes = attrs
+
+    @callback
+    def _async_add(self, bucket: str, kwh: float) -> None:
+        if self._bucket not in ("total", bucket):
+            return
+        self._attr_native_value = round(
+            float(cast(float, self._attr_native_value or 0)) + kwh, 4
+        )
+        self._update_attrs()
+        if self.active:
+            self.async_write_ha_state()
+
+    def set_value(self, value: Any) -> None:  # not fed by the property poll
+        return
 
 
 class _PropertySensor(_BaseSensor):

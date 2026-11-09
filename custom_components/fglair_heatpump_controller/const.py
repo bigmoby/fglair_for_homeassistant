@@ -34,6 +34,12 @@ CONF_TOKENPATH = "tokenpath"
 CONF_TEMPERATURE_OFFSET = "temperature_offset"
 
 DEFAULT_TEMPERATURE_OFFSET: float = 0.0
+
+# Options: upstream meter per device (dsn -> entity_id) and power threshold for
+# "compressor running" (W)
+CONF_METERS = "meters"
+CONF_ACTION_THRESHOLD = "action_threshold"
+DEFAULT_ACTION_THRESHOLD: float = 150.0
 DEFAULT_TOKEN_PATH = "token.txt"
 
 MIN_TEMP = 16

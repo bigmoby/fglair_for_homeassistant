@@ -3,6 +3,7 @@ with Home Assistant.
 """
 
 import asyncio
+from functools import partial
 import logging
 import time
 from typing import Any
@@ -17,7 +18,10 @@ from pyfujitsugeneral.client import FGLairApiClient
 from pyfujitsugeneral.exceptions import FGLairGeneralException
 
 from .const import (
+    CONF_ACTION_THRESHOLD,
+    CONF_METERS,
     CONF_TOKENPATH,
+    DEFAULT_ACTION_THRESHOLD,
     DEFAULT_TIMEOUT,
     DEFAULT_TOKEN_PATH,
     DOMAIN,
@@ -25,6 +29,7 @@ from .const import (
     SCAN_INTERVAL,
     STARTUP_MESSAGE,
 )
+from .energy import UpstreamMeter
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -64,8 +69,34 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = coordinator
 
+    # Upstream meters (options): energy per operating mode and real hvac_action
+    options = getattr(entry, "options", None) or {}
+    threshold = float(options.get(CONF_ACTION_THRESHOLD, DEFAULT_ACTION_THRESHOLD))
+    meters = hass.data[DOMAIN].setdefault("meters", {})
+    for dsn, entity_id in (options.get(CONF_METERS) or {}).items():
+        if dsn in devices and entity_id:
+            meter = UpstreamMeter(hass, dsn, entity_id, threshold)
+            meter.async_start()
+            meters[dsn] = meter
+            entry.async_on_unload(meter.async_stop)
+            entry.async_on_unload(partial(_forget_meter, meters, dsn))
+    entry.async_on_unload(entry.add_update_listener(_async_options_updated))
+
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+def _forget_meter(meters: dict[str, UpstreamMeter], dsn: str) -> None:
+    """Remove the meter of a device on unload.
+
+    Must return None: Home Assistant schedules a returned value as a task.
+    """
+    meters.pop(dsn, None)
+
+
+async def _async_options_updated(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Options changed (e.g. meter added): reload the integration."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 _LOGIN_REUSE = 60  # seconds a fresh login is shared by all requests

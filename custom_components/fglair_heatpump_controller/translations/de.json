@@ -101,6 +101,24 @@
       },
       "ota_status": {
         "name": "OTA-Status"
+      },
+      "energy_heat": {
+        "name": "Energie Heizen"
+      },
+      "energy_cool": {
+        "name": "Energie Kühlen"
+      },
+      "energy_dry": {
+        "name": "Energie Entfeuchten"
+      },
+      "energy_fan": {
+        "name": "Energie Lüften"
+      },
+      "energy_standby": {
+        "name": "Energie Standby"
+      },
+      "energy_total": {
+        "name": "Energie gesamt"
       }
     },
     "binary_sensor": {
@@ -120,6 +138,20 @@
               "diffuse": "Leise"
             }
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Vorgeschaltete Zähler",
+        "description": "Je Anlage optional ein Energiezähler (kWh) oder Leistungssensor (W) davor, z. B. die Steckdose. Daraus entstehen Energiezähler je Betriebsart, und die Anlage zeigt an, ob sie gerade heizt/kühlt oder untätig ist. Hat der Energiezähler einen Leistungssensor am selben Gerät, wird er dafür mitbenutzt.",
+        "data": {
+          "action_threshold": "Schwelle Verdichter läuft"
+        },
+        "data_description": {
+          "action_threshold": "Liegt die Leistung darüber, läuft der Verdichter (heizen/kühlen), darunter ist die Anlage untätig."
         }
       }
     }

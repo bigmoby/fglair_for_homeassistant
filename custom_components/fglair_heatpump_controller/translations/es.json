@@ -101,6 +101,24 @@
       },
       "ota_status": {
         "name": "Estado OTA"
+      },
+      "energy_heat": {
+        "name": "Energía calefacción"
+      },
+      "energy_cool": {
+        "name": "Energía refrigeración"
+      },
+      "energy_dry": {
+        "name": "Energía deshumidificación"
+      },
+      "energy_fan": {
+        "name": "Energía ventilador"
+      },
+      "energy_standby": {
+        "name": "Energía en espera"
+      },
+      "energy_total": {
+        "name": "Energía total"
       }
     },
     "binary_sensor": {
@@ -120,6 +138,20 @@
               "diffuse": "Silencioso"
             }
           }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Medidores previos",
+        "description": "Opcionalmente, un medidor de energía (kWh) o sensor de potencia (W) delante de cada unidad, p. ej. un enchufe inteligente. Proporciona contadores de energía por modo y la unidad indica si calienta/enfría o está inactiva.",
+        "data": {
+          "action_threshold": "Umbral compresor en marcha"
+        },
+        "data_description": {
+          "action_threshold": "Por encima de esta potencia el compresor funciona (calentar/enfriar), por debajo la unidad está inactiva."
         }
       }
     }
