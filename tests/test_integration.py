@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_REGION, CONF_USERNAME
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 import pytest
 
@@ -439,9 +440,9 @@ async def test_async_setup_entry_exception() -> None:
             return_value=None
         )
 
-        result = await async_setup_entry(mock_hass, mock_entry)
-
-        assert result is True  # The function doesn't handle exceptions, it returns True
+        # Cloud not reachable / login failed: Home Assistant retries the setup later
+        with pytest.raises(ConfigEntryNotReady):
+            await async_setup_entry(mock_hass, mock_entry)
 
 
 @pytest.mark.asyncio

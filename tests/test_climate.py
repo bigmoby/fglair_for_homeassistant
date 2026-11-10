@@ -2933,8 +2933,7 @@ def test_climate_current_preset_mode() -> None:
 
 @pytest.mark.asyncio
 async def test_async_setup_entry_success() -> None:
-    """Test successful climate setup entry."""
-    # Mock Home Assistant objects
+    """Climate setup uses the shared, already logged-in client of the coordinator."""
     mock_hass = MagicMock()
     mock_entry = MagicMock()
     mock_entry.entry_id = "test_entry_id"
@@ -2947,102 +2946,35 @@ async def test_async_setup_entry_success() -> None:
     }
     mock_async_add_entities = MagicMock()
 
-    # Mock coordinator in hass.data
+    mock_api_client = AsyncMock()
     mock_coordinator = MagicMock()
+    mock_coordinator.client = mock_api_client
+    mock_coordinator.devices = ["device1", "device2"]
     mock_hass.data = {DOMAIN: {mock_entry.entry_id: mock_coordinator}}
 
-    # Mock API client and authentication
-    mock_api_client = AsyncMock()
-    mock_api_client.async_authenticate.return_value = True
-    mock_api_client.async_get_devices_dsn.return_value = ["device1", "device2"]
-
-    with (
-        patch(
-            "custom_components.fglair_heatpump_controller.climate.FGLairApiClient",
-            return_value=mock_api_client,
-        ),
-        patch(
-            "custom_components.fglair_heatpump_controller.climate."
-            "async_get_clientsession",
-            return_value=MagicMock(),
-        ),
-        patch(
-            "custom_components.fglair_heatpump_controller.climate."
-            "_async_migrate_legacy_unique_ids",
-        ) as mock_migrate,
-    ):
+    with patch(
+        "custom_components.fglair_heatpump_controller.climate."
+        "_async_migrate_legacy_unique_ids",
+    ) as mock_migrate:
         await async_setup_entry(mock_hass, mock_entry, mock_async_add_entities)
 
-    # Verify authentication was called
-    mock_api_client.async_authenticate.assert_called_once()
+    # No second login and no second device list request
+    mock_api_client.async_authenticate.assert_not_called()
+    mock_api_client.async_get_devices_dsn.assert_not_called()
 
-    # Verify devices were fetched
-    mock_api_client.async_get_devices_dsn.assert_called_once()
-
-    # Verify legacy unique IDs are migrated before entities are added
+    # Legacy unique IDs are migrated before entities are added
     mock_migrate.assert_awaited_once_with(
         mock_hass, mock_entry, mock_api_client, ["device1", "device2"]
     )
 
-    # Verify entities were added
     mock_async_add_entities.assert_called_once()
     entities = mock_async_add_entities.call_args[0][0]
-    assert len(entities) == 2  # Two devices
-
-
-@pytest.mark.asyncio
-async def test_async_setup_entry_auth_failure() -> None:
-    """Test climate setup entry with authentication failure."""
-    # Mock Home Assistant objects
-    mock_hass = MagicMock()
-    mock_entry = MagicMock()
-    mock_entry.entry_id = "test_entry_id"
-    mock_entry.data = {
-        CONF_USERNAME: "test_user",
-        CONF_PASSWORD: "test_pass",
-        CONF_REGION: "eu",
-        CONF_TOKENPATH: "/test/path",
-        CONF_TEMPERATURE_OFFSET: 0.0,
-    }
-    mock_async_add_entities = MagicMock()
-
-    # Mock coordinator in hass.data
-    mock_coordinator = MagicMock()
-    mock_hass.data = {DOMAIN: {mock_entry.entry_id: mock_coordinator}}
-
-    # Mock API client with authentication failure
-    mock_api_client = AsyncMock()
-    mock_api_client.async_authenticate.return_value = False
-
-    with (
-        patch(
-            "custom_components.fglair_heatpump_controller.climate.FGLairApiClient",
-            return_value=mock_api_client,
-        ),
-        patch(
-            "custom_components.fglair_heatpump_controller.climate."
-            "async_get_clientsession",
-            return_value=MagicMock(),
-        ),
-        patch(
-            "custom_components.fglair_heatpump_controller.climate."
-            "_async_migrate_legacy_unique_ids",
-        ) as mock_migrate,
-    ):
-        await async_setup_entry(mock_hass, mock_entry, mock_async_add_entities)
-
-    # Verify authentication was called
-    mock_api_client.async_authenticate.assert_called_once()
-
-    # Verify no migration and no entities due to auth failure
-    mock_migrate.assert_not_called()
-    mock_async_add_entities.assert_not_called()
+    assert len(entities) == 2
 
 
 @pytest.mark.asyncio
 async def test_async_setup_entry_no_devices() -> None:
     """Test climate setup entry with no devices."""
-    # Mock Home Assistant objects
     mock_hass = MagicMock()
     mock_entry = MagicMock()
     mock_entry.entry_id = "test_entry_id"
@@ -3055,44 +2987,21 @@ async def test_async_setup_entry_no_devices() -> None:
     }
     mock_async_add_entities = MagicMock()
 
-    # Mock coordinator in hass.data
+    mock_api_client = AsyncMock()
     mock_coordinator = MagicMock()
+    mock_coordinator.client = mock_api_client
+    mock_coordinator.devices = []
     mock_hass.data = {DOMAIN: {mock_entry.entry_id: mock_coordinator}}
 
-    # Mock API client with no devices
-    mock_api_client = AsyncMock()
-    mock_api_client.async_authenticate.return_value = True
-    mock_api_client.async_get_devices_dsn.return_value = []
-
-    with (
-        patch(
-            "custom_components.fglair_heatpump_controller.climate.FGLairApiClient",
-            return_value=mock_api_client,
-        ),
-        patch(
-            "custom_components.fglair_heatpump_controller.climate."
-            "async_get_clientsession",
-            return_value=MagicMock(),
-        ),
-        patch(
-            "custom_components.fglair_heatpump_controller.climate."
-            "_async_migrate_legacy_unique_ids",
-        ) as mock_migrate,
-    ):
+    with patch(
+        "custom_components.fglair_heatpump_controller.climate."
+        "_async_migrate_legacy_unique_ids",
+    ) as mock_migrate:
         await async_setup_entry(mock_hass, mock_entry, mock_async_add_entities)
 
-    # Verify authentication was called
-    mock_api_client.async_authenticate.assert_called_once()
-
-    # Verify devices were fetched
-    mock_api_client.async_get_devices_dsn.assert_called_once()
-
     mock_migrate.assert_awaited_once_with(mock_hass, mock_entry, mock_api_client, [])
-
-    # Verify no entities were added (empty list)
     mock_async_add_entities.assert_called_once()
-    entities = mock_async_add_entities.call_args[0][0]
-    assert len(entities) == 0
+    assert len(mock_async_add_entities.call_args[0][0]) == 0
 
 
 def test_climate_basic_properties() -> None:

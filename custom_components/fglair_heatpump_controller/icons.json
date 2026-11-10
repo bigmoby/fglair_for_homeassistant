@@ -1,0 +1,20 @@
+{
+  "entity": {
+    "climate": {
+      "fglair": {
+        "state_attributes": {
+          "fan_mode": {
+            "default": "mdi:circle-medium",
+            "state": {
+              "auto": "mdi:fan-auto",
+              "low": "mdi:speedometer-slow",
+              "medium": "mdi:speedometer-medium",
+              "high": "mdi:speedometer",
+              "diffuse": "mdi:ear-hearing-off"
+            }
+          }
+        }
+      }
+    }
+  }
+}
