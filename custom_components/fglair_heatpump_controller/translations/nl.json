@@ -1,0 +1,159 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Verbinden met FGLair",
+        "description": "Verbinden met je FGLair-account.",
+        "data": {
+          "username": "E-mail",
+          "password": "Wachtwoord",
+          "region": "Regio",
+          "tokenpath": "Tokenpad",
+          "temperature_offset": "Temperatuurcorrectie"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "FGLair is voor dit e-mailadres al ingesteld. Het toegangstoken is vernieuwd."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "last_contact": {
+        "name": "Laatste contact"
+      },
+      "last_change": {
+        "name": "Laatste wijziging"
+      },
+      "last_poll": {
+        "name": "Laatste opvraging"
+      },
+      "indoor_temperature": {
+        "name": "Binnentemperatuur"
+      },
+      "outdoor_temperature": {
+        "name": "Buitentemperatuur"
+      },
+      "outdoor_temperature_raw": {
+        "name": "Buitentemperatuur (ruw)"
+      },
+      "error_code": {
+        "name": "Foutcode"
+      },
+      "op_status": {
+        "name": "Bedrijfsstatus"
+      },
+      "wifi_led_enable": {
+        "name": "Wifi-led"
+      },
+      "model_name": {
+        "name": "Model"
+      },
+      "mcu_fw_version": {
+        "name": "Firmware besturing"
+      },
+      "oem_host_version": {
+        "name": "Firmware wifimodule"
+      },
+      "device_name": {
+        "name": "Apparaatnaam"
+      },
+      "device_capabilities": {
+        "name": "Apparaatfuncties"
+      },
+      "af_vertical_num_dir": {
+        "name": "Posities luchtstroom verticaal"
+      },
+      "af_horizontal_num_dir": {
+        "name": "Posities luchtstroom horizontaal"
+      },
+      "outdoor_low_noise": {
+        "name": "Buitenunit stil"
+      },
+      "human_det": {
+        "name": "Persoonsdetectie"
+      },
+      "coil_dry_mode": {
+        "name": "Drogen warmtewisselaar"
+      },
+      "external_thermostat_off": {
+        "name": "Externe thermostaat uit"
+      },
+      "heat_sterilizatio": {
+        "name": "Hittesterilisatie"
+      },
+      "comm_version": {
+        "name": "Communicatieversie"
+      },
+      "ac_info1": {
+        "name": "Airco-info 1"
+      },
+      "monitor1": {
+        "name": "Monitor 1"
+      },
+      "monitor2": {
+        "name": "Monitor 2"
+      },
+      "ota_status": {
+        "name": "OTA-status"
+      },
+      "energy_heat": {
+        "name": "Energie verwarmen"
+      },
+      "energy_cool": {
+        "name": "Energie koelen"
+      },
+      "energy_dry": {
+        "name": "Energie drogen"
+      },
+      "energy_fan": {
+        "name": "Energie ventilator"
+      },
+      "energy_standby": {
+        "name": "Energie stand-by"
+      },
+      "energy_total": {
+        "name": "Energie totaal"
+      }
+    },
+    "binary_sensor": {
+      "cloud_connection": {
+        "name": "Cloudverbinding"
+      }
+    },
+    "climate": {
+      "fglair": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Automatisch",
+              "low": "Laag",
+              "medium": "Gemiddeld",
+              "high": "Hoog",
+              "diffuse": "Stil"
+            }
+          }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Voorgeschakelde meters",
+        "description": "Optioneel per unit een energiemeter (kWh) of vermogenssensor (W) ervoor, bijv. een slimme stekker. Daaruit ontstaan energietellers per bedrijfsmodus en de unit toont of hij verwarmt/koelt of inactief is.",
+        "data": {
+          "action_threshold": "Drempel compressor actief"
+        },
+        "data_description": {
+          "action_threshold": "Boven dit vermogen draait de compressor (verwarmen/koelen), daaronder is de unit inactief."
+        }
+      }
+    }
+  }
+}

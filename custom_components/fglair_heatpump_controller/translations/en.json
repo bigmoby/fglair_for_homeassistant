@@ -21,5 +21,139 @@
     "abort": {
       "already_configured": "FGLair integration already configured for this email. Access token has been refreshed."
     }
+  },
+  "entity": {
+    "sensor": {
+      "last_contact": {
+        "name": "Last contact"
+      },
+      "last_change": {
+        "name": "Last change"
+      },
+      "last_poll": {
+        "name": "Last poll"
+      },
+      "indoor_temperature": {
+        "name": "Indoor temperature"
+      },
+      "outdoor_temperature": {
+        "name": "Outdoor temperature"
+      },
+      "outdoor_temperature_raw": {
+        "name": "Outdoor temperature raw"
+      },
+      "error_code": {
+        "name": "Error code"
+      },
+      "op_status": {
+        "name": "Operation status"
+      },
+      "wifi_led_enable": {
+        "name": "Wi-Fi LED"
+      },
+      "model_name": {
+        "name": "Model"
+      },
+      "mcu_fw_version": {
+        "name": "Controller firmware"
+      },
+      "oem_host_version": {
+        "name": "Wi-Fi module firmware"
+      },
+      "device_name": {
+        "name": "Device name"
+      },
+      "device_capabilities": {
+        "name": "Device capabilities"
+      },
+      "af_vertical_num_dir": {
+        "name": "Vertical airflow positions"
+      },
+      "af_horizontal_num_dir": {
+        "name": "Horizontal airflow positions"
+      },
+      "outdoor_low_noise": {
+        "name": "Outdoor low noise"
+      },
+      "human_det": {
+        "name": "Human detection"
+      },
+      "coil_dry_mode": {
+        "name": "Coil dry mode"
+      },
+      "external_thermostat_off": {
+        "name": "External thermostat off"
+      },
+      "heat_sterilizatio": {
+        "name": "Heat sterilization"
+      },
+      "comm_version": {
+        "name": "Communication version"
+      },
+      "ac_info1": {
+        "name": "AC info 1"
+      },
+      "monitor1": {
+        "name": "Monitor 1"
+      },
+      "monitor2": {
+        "name": "Monitor 2"
+      },
+      "ota_status": {
+        "name": "OTA status"
+      },
+      "energy_heat": {
+        "name": "Energy heating"
+      },
+      "energy_cool": {
+        "name": "Energy cooling"
+      },
+      "energy_dry": {
+        "name": "Energy drying"
+      },
+      "energy_fan": {
+        "name": "Energy fan"
+      },
+      "energy_standby": {
+        "name": "Energy standby"
+      },
+      "energy_total": {
+        "name": "Energy total"
+      }
+    },
+    "binary_sensor": {
+      "cloud_connection": {
+        "name": "Cloud connection"
+      }
+    },
+    "climate": {
+      "fglair": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Auto",
+              "low": "Low",
+              "medium": "Medium",
+              "high": "High",
+              "diffuse": "Quiet"
+            }
+          }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Upstream meters",
+        "description": "Optionally an energy meter (kWh) or power sensor (W) in front of each unit, e.g. a smart plug. It provides energy counters per operating mode, and the unit shows whether it is heating/cooling or idle. A power sensor on the same device as the energy meter is used for that as well.",
+        "data": {
+          "action_threshold": "Threshold compressor running"
+        },
+        "data_description": {
+          "action_threshold": "Above this power the compressor is running (heating/cooling), below it the unit is idle."
+        }
+      }
+    }
   }
 }

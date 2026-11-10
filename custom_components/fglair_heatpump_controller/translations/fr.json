@@ -1,0 +1,159 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Se connecter à FGLair",
+        "description": "Se connecter avec votre compte FGLair.",
+        "data": {
+          "username": "E-mail",
+          "password": "Mot de passe",
+          "region": "Région",
+          "tokenpath": "Chemin du jeton",
+          "temperature_offset": "Correction de température"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "FGLair est déjà configuré pour cette adresse e-mail. Le jeton d'accès a été renouvelé."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "last_contact": {
+        "name": "Dernier contact"
+      },
+      "last_change": {
+        "name": "Dernière modification"
+      },
+      "last_poll": {
+        "name": "Dernière interrogation"
+      },
+      "indoor_temperature": {
+        "name": "Température intérieure"
+      },
+      "outdoor_temperature": {
+        "name": "Température extérieure"
+      },
+      "outdoor_temperature_raw": {
+        "name": "Température extérieure (brute)"
+      },
+      "error_code": {
+        "name": "Code d'erreur"
+      },
+      "op_status": {
+        "name": "État de fonctionnement"
+      },
+      "wifi_led_enable": {
+        "name": "LED Wi-Fi"
+      },
+      "model_name": {
+        "name": "Modèle"
+      },
+      "mcu_fw_version": {
+        "name": "Firmware du contrôleur"
+      },
+      "oem_host_version": {
+        "name": "Firmware du module Wi-Fi"
+      },
+      "device_name": {
+        "name": "Nom de l'appareil"
+      },
+      "device_capabilities": {
+        "name": "Fonctions de l'appareil"
+      },
+      "af_vertical_num_dir": {
+        "name": "Positions du flux vertical"
+      },
+      "af_horizontal_num_dir": {
+        "name": "Positions du flux horizontal"
+      },
+      "outdoor_low_noise": {
+        "name": "Unité extérieure silencieuse"
+      },
+      "human_det": {
+        "name": "Détection de présence"
+      },
+      "coil_dry_mode": {
+        "name": "Séchage de l'échangeur"
+      },
+      "external_thermostat_off": {
+        "name": "Thermostat externe arrêté"
+      },
+      "heat_sterilizatio": {
+        "name": "Stérilisation thermique"
+      },
+      "comm_version": {
+        "name": "Version de communication"
+      },
+      "ac_info1": {
+        "name": "Info climatiseur 1"
+      },
+      "monitor1": {
+        "name": "Moniteur 1"
+      },
+      "monitor2": {
+        "name": "Moniteur 2"
+      },
+      "ota_status": {
+        "name": "État OTA"
+      },
+      "energy_heat": {
+        "name": "Énergie chauffage"
+      },
+      "energy_cool": {
+        "name": "Énergie climatisation"
+      },
+      "energy_dry": {
+        "name": "Énergie déshumidification"
+      },
+      "energy_fan": {
+        "name": "Énergie ventilation"
+      },
+      "energy_standby": {
+        "name": "Énergie veille"
+      },
+      "energy_total": {
+        "name": "Énergie totale"
+      }
+    },
+    "binary_sensor": {
+      "cloud_connection": {
+        "name": "Connexion au cloud"
+      }
+    },
+    "climate": {
+      "fglair": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Auto",
+              "low": "Faible",
+              "medium": "Moyen",
+              "high": "Élevé",
+              "diffuse": "Silencieux"
+            }
+          }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Compteurs en amont",
+        "description": "Optionnellement un compteur d'énergie (kWh) ou un capteur de puissance (W) en amont de chaque unité, p. ex. une prise connectée. Il fournit des compteurs d'énergie par mode et l'unité indique si elle chauffe/refroidit ou est inactive.",
+        "data": {
+          "action_threshold": "Seuil compresseur en marche"
+        },
+        "data_description": {
+          "action_threshold": "Au-dessus de cette puissance le compresseur fonctionne (chauffer/refroidir), en dessous l'unité est inactive."
+        }
+      }
+    }
+  }
+}

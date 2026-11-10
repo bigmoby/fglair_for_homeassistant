@@ -1,0 +1,159 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Mit FGLair verbinden",
+        "description": "Mit deinem FGLair-Konto verbinden.",
+        "data": {
+          "username": "E-Mail",
+          "password": "Passwort",
+          "region": "Region",
+          "tokenpath": "Token-Pfad",
+          "temperature_offset": "Temperaturkorrektur"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "FGLair ist für diese E-Mail bereits eingerichtet. Das Zugriffstoken wurde erneuert."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "last_contact": {
+        "name": "Letzter Kontakt"
+      },
+      "last_change": {
+        "name": "Letzte Änderung"
+      },
+      "last_poll": {
+        "name": "Letzter Abruf"
+      },
+      "indoor_temperature": {
+        "name": "Innentemperatur"
+      },
+      "outdoor_temperature": {
+        "name": "Außentemperatur"
+      },
+      "outdoor_temperature_raw": {
+        "name": "Außentemperatur (Rohwert)"
+      },
+      "error_code": {
+        "name": "Fehlercode"
+      },
+      "op_status": {
+        "name": "Betriebsstatus"
+      },
+      "wifi_led_enable": {
+        "name": "WLAN-LED"
+      },
+      "model_name": {
+        "name": "Modell"
+      },
+      "mcu_fw_version": {
+        "name": "Firmware Steuerung"
+      },
+      "oem_host_version": {
+        "name": "Firmware WLAN-Modul"
+      },
+      "device_name": {
+        "name": "Gerätename"
+      },
+      "device_capabilities": {
+        "name": "Gerätefunktionen"
+      },
+      "af_vertical_num_dir": {
+        "name": "Positionen Luftstrom vertikal"
+      },
+      "af_horizontal_num_dir": {
+        "name": "Positionen Luftstrom horizontal"
+      },
+      "outdoor_low_noise": {
+        "name": "Außengerät leise"
+      },
+      "human_det": {
+        "name": "Personenerkennung"
+      },
+      "coil_dry_mode": {
+        "name": "Wärmetauscher-Trocknung"
+      },
+      "external_thermostat_off": {
+        "name": "Externer Thermostat aus"
+      },
+      "heat_sterilizatio": {
+        "name": "Hitzesterilisation"
+      },
+      "comm_version": {
+        "name": "Kommunikationsversion"
+      },
+      "ac_info1": {
+        "name": "Klimaanlage Info 1"
+      },
+      "monitor1": {
+        "name": "Monitor 1"
+      },
+      "monitor2": {
+        "name": "Monitor 2"
+      },
+      "ota_status": {
+        "name": "OTA-Status"
+      },
+      "energy_heat": {
+        "name": "Energie Heizen"
+      },
+      "energy_cool": {
+        "name": "Energie Kühlen"
+      },
+      "energy_dry": {
+        "name": "Energie Entfeuchten"
+      },
+      "energy_fan": {
+        "name": "Energie Lüften"
+      },
+      "energy_standby": {
+        "name": "Energie Standby"
+      },
+      "energy_total": {
+        "name": "Energie gesamt"
+      }
+    },
+    "binary_sensor": {
+      "cloud_connection": {
+        "name": "Cloud-Verbindung"
+      }
+    },
+    "climate": {
+      "fglair": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Auto",
+              "low": "Niedrig",
+              "medium": "Mittel",
+              "high": "Hoch",
+              "diffuse": "Leise"
+            }
+          }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Vorgeschaltete Zähler",
+        "description": "Je Anlage optional ein Energiezähler (kWh) oder Leistungssensor (W) davor, z. B. die Steckdose. Daraus entstehen Energiezähler je Betriebsart, und die Anlage zeigt an, ob sie gerade heizt/kühlt oder untätig ist. Hat der Energiezähler einen Leistungssensor am selben Gerät, wird er dafür mitbenutzt.",
+        "data": {
+          "action_threshold": "Schwelle Verdichter läuft"
+        },
+        "data_description": {
+          "action_threshold": "Liegt die Leistung darüber, läuft der Verdichter (heizen/kühlen), darunter ist die Anlage untätig."
+        }
+      }
+    }
+  }
+}

@@ -21,13 +21,25 @@ ICON = "mdi:format-quote-close"
 BINARY_SENSOR_DEVICE_CLASS = "connectivity"
 
 # Platforms
-PLATFORMS = [Platform.CLIMATE]
+PLATFORMS = [Platform.CLIMATE, Platform.SENSOR, Platform.BINARY_SENSOR]
+
+# Climate entity -> diagnostic sensors: (dsn, device name, raw property list)
+SIGNAL_PROPERTIES = f"{DOMAIN}_properties"
+
+# No successful poll / no report of the unit for this long -> unavailable
+STALE_AFTER = timedelta(minutes=10)
 
 # Configuration and options
 CONF_TOKENPATH = "tokenpath"
 CONF_TEMPERATURE_OFFSET = "temperature_offset"
 
 DEFAULT_TEMPERATURE_OFFSET: float = 0.0
+
+# Options: upstream meter per device (dsn -> entity_id) and power threshold for
+# "compressor running" (W)
+CONF_METERS = "meters"
+CONF_ACTION_THRESHOLD = "action_threshold"
+DEFAULT_ACTION_THRESHOLD: float = 150.0
 DEFAULT_TOKEN_PATH = "token.txt"
 
 MIN_TEMP = 16

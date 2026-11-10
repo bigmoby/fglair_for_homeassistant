@@ -21,5 +21,139 @@
     "abort": {
       "already_configured": "L'integrazione FGLair è già configurata con queste credenziali di accesso. Access token has been refreshed."
     }
+  },
+  "entity": {
+    "sensor": {
+      "last_contact": {
+        "name": "Ultimo contatto"
+      },
+      "last_change": {
+        "name": "Ultima modifica"
+      },
+      "last_poll": {
+        "name": "Ultima interrogazione"
+      },
+      "indoor_temperature": {
+        "name": "Temperatura interna"
+      },
+      "outdoor_temperature": {
+        "name": "Temperatura esterna"
+      },
+      "outdoor_temperature_raw": {
+        "name": "Temperatura esterna (valore grezzo)"
+      },
+      "error_code": {
+        "name": "Codice errore"
+      },
+      "op_status": {
+        "name": "Stato di funzionamento"
+      },
+      "wifi_led_enable": {
+        "name": "LED Wi-Fi"
+      },
+      "model_name": {
+        "name": "Modello"
+      },
+      "mcu_fw_version": {
+        "name": "Firmware controllore"
+      },
+      "oem_host_version": {
+        "name": "Firmware modulo Wi-Fi"
+      },
+      "device_name": {
+        "name": "Nome dispositivo"
+      },
+      "device_capabilities": {
+        "name": "Funzioni dispositivo"
+      },
+      "af_vertical_num_dir": {
+        "name": "Posizioni flusso d'aria verticale"
+      },
+      "af_horizontal_num_dir": {
+        "name": "Posizioni flusso d'aria orizzontale"
+      },
+      "outdoor_low_noise": {
+        "name": "Unità esterna silenziosa"
+      },
+      "human_det": {
+        "name": "Rilevamento persone"
+      },
+      "coil_dry_mode": {
+        "name": "Asciugatura batteria"
+      },
+      "external_thermostat_off": {
+        "name": "Termostato esterno spento"
+      },
+      "heat_sterilizatio": {
+        "name": "Sterilizzazione a caldo"
+      },
+      "comm_version": {
+        "name": "Versione comunicazione"
+      },
+      "ac_info1": {
+        "name": "Info climatizzatore 1"
+      },
+      "monitor1": {
+        "name": "Monitor 1"
+      },
+      "monitor2": {
+        "name": "Monitor 2"
+      },
+      "ota_status": {
+        "name": "Stato OTA"
+      },
+      "energy_heat": {
+        "name": "Energia riscaldamento"
+      },
+      "energy_cool": {
+        "name": "Energia raffreddamento"
+      },
+      "energy_dry": {
+        "name": "Energia deumidificazione"
+      },
+      "energy_fan": {
+        "name": "Energia ventilazione"
+      },
+      "energy_standby": {
+        "name": "Energia standby"
+      },
+      "energy_total": {
+        "name": "Energia totale"
+      }
+    },
+    "binary_sensor": {
+      "cloud_connection": {
+        "name": "Connessione cloud"
+      }
+    },
+    "climate": {
+      "fglair": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Auto",
+              "low": "Bassa",
+              "medium": "Media",
+              "high": "Alta",
+              "diffuse": "Silenziosa"
+            }
+          }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Contatori a monte",
+        "description": "Facoltativo per ogni unità un contatore di energia (kWh) o sensore di potenza (W) a monte, ad es. una presa smart. Fornisce contatori di energia per modalità e l'unità indica se riscalda/raffredda o è inattiva.",
+        "data": {
+          "action_threshold": "Soglia compressore in funzione"
+        },
+        "data_description": {
+          "action_threshold": "Sopra questa potenza il compressore funziona (riscaldare/raffreddare), sotto l'unità è inattiva."
+        }
+      }
+    }
   }
 }

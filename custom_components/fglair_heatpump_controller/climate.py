@@ -41,12 +41,13 @@ from homeassistant.exceptions import (
     ServiceValidationError,
 )
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import Throttle
-from homeassistant.util.dt import utcnow
+from homeassistant.util.dt import parse_datetime, utcnow
 import probatio
 from pyfujitsugeneral.client import FGLairApiClient
 from pyfujitsugeneral.exceptions import FGLairGeneralException
@@ -65,8 +66,12 @@ from .const import (
     MIN_TEMP,
     MIN_TIME_BETWEEN_UPDATES,
     REFRESH_MINUTES_INTERVAL,
+    SIGNAL_PROPERTIES,
+    STALE_AFTER,
     VERTICAL,
 )
+from .energy import UpstreamMeter
+from .sensor import device_info as _device_info
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -129,6 +134,40 @@ DICT_FAN_MODE = {
     "High": FAN_HIGH,
     "Quiet": FAN_DIFFUSE,
 }
+
+
+def _newest_report(properties: Any) -> datetime | None:
+    """Return the newest data_updated_at of all properties (last report of the unit)."""
+    newest = None
+    for item in properties if isinstance(properties, list) else []:
+        prop = item.get("property") if isinstance(item, dict) else None
+        stamp = (
+            parse_datetime(str(prop.get("data_updated_at")))
+            if isinstance(prop, dict) and prop.get("data_updated_at")
+            else None
+        )
+        if stamp is not None and (newest is None or stamp > newest):
+            newest = stamp
+    return newest
+
+
+def _outdoor_degree(device: Any) -> float | None:
+    """Outdoor temperature in degrees C ((raw - 5000) / 100), None if not supported."""
+    raw = device.get_outdoor_temperature()
+    value = raw.get("value") if isinstance(raw, dict) else None
+    if not isinstance(value, (int, float)) or value in (65535, 0):
+        return None
+    return round((value - 5000) / 100, 1)
+
+
+def device_is_available(
+    last_poll: datetime | None, last_contact: datetime | None
+) -> bool:
+    """Fresh poll AND the unit reported at most STALE_AFTER before that poll."""
+    if last_poll is None or utcnow() - last_poll > STALE_AFTER:
+        return False
+    return last_contact is None or last_poll - last_contact <= STALE_AFTER
+
 
 FUJITSU_TO_HA_STATE = {
     "off": HVACMode.OFF,
@@ -239,23 +278,13 @@ async def async_setup_entry(
 
     coordinator: FglairDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    username: str = entry.data[CONF_USERNAME]
-    password: str = entry.data[CONF_PASSWORD]
     region: str = entry.data[CONF_REGION]
     tokenpath: str = entry.data[CONF_TOKENPATH]
     temperature_offset: float = entry.data[CONF_TEMPERATURE_OFFSET]
 
-    fglair_api_client: FGLairApiClient = FGLairApiClient(
-        username, password, region, tokenpath, async_get_clientsession(hass)
-    )
-
-    auth_result = await fglair_api_client.async_authenticate()
-
-    if not auth_result:
-        _LOGGER.error("Unable to authenticate with Fujistsu General")
-        return
-
-    devices = await fglair_api_client.async_get_devices_dsn()
+    # Shared client, already logged in during setup (see __init__.py) - no second login.
+    fglair_api_client: FGLairApiClient = coordinator.client
+    devices = coordinator.devices
 
     await _async_migrate_legacy_unique_ids(hass, entry, fglair_api_client, devices)
 
@@ -289,6 +318,8 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
     """Representation of a Fujitsu HVAC device."""
 
     _enable_turn_on_off_backwards_compatibility = False
+    # Translations of the fan modes and icons: translations/*.json, icons.json
+    _attr_translation_key = "fglair"
 
     def __init__(
         self,
@@ -317,6 +348,8 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         self._attr_supported_features = SUPPORT_FLAGS
 
         self._properties: Any = None
+        self._last_poll: datetime | None = None
+        self._last_contact: datetime | None = None
         self._name = ""
         self._unique_id: str = ""
         self._aux_heat: bool = False
@@ -360,7 +393,31 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
         await super().async_added_to_hass()
+        # Upstream meter (options): provide the operating mode for the energy split and
+        # write hvac_action again on every new power value
+        if (meter := self._meter) is not None:
+            meter.mode_provider = lambda: (
+                self.hvac_mode if self._properties is not None else None,
+                self._target_temperature,
+                self._current_temperature,
+            )
+            self.async_on_remove(meter.add_power_listener(self._async_power_changed))
         self._handle_coordinator_update()
+
+    @property
+    def _meter(self) -> UpstreamMeter | None:
+        data = getattr(self._hass, "data", None)
+        meter = (
+            data.get(DOMAIN, {}).get("meters", {}).get(self._dsn)
+            if isinstance(data, dict)
+            else None
+        )
+        return meter if isinstance(meter, UpstreamMeter) else None
+
+    @callback
+    def _async_power_changed(self) -> None:
+        if self.hass is not None and self._properties is not None:
+            self.async_write_ha_state()
 
     @property
     def name(self) -> str:
@@ -501,6 +558,26 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         if not self.is_on:
             return HVACAction.OFF
 
+        # With an upstream meter: compressor running (power above the threshold) or not
+        meter = self._meter
+        if (
+            meter is not None
+            and (running := meter.running()) is not None
+            and self._fujitsu_device.get_op_status_desc() != "Defrost"
+        ):
+            mode = self.hvac_mode
+            if mode == HVACMode.FAN_ONLY:
+                return HVACAction.FAN
+            if not running:
+                return HVACAction.IDLE
+            if mode == HVACMode.DRY:
+                return HVACAction.DRYING
+            if mode == HVACMode.COOL or (
+                mode == HVACMode.AUTO and meter.bucket() == "cool"
+            ):
+                return HVACAction.COOLING
+            return HVACAction.HEATING
+
         op_status_desc = self._fujitsu_device.get_op_status_desc()
 
         _LOGGER.debug(
@@ -552,6 +629,10 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
 
         self._name = self.name  # ensure name is current
 
+        # Availability: last successful poll and last report of the unit to the cloud
+        self._last_poll = utcnow()
+        self._last_contact = _newest_report(self._properties)
+
         _LOGGER.debug(
             "FujitsuClimate device [%s] detected supported presets: %s",
             self._name,
@@ -571,11 +652,19 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             await self._async_refresh_display_temperature_request(
                 self._fujitsu_device.get_refresh()["data_updated_at"]
             )
-        except (HomeAssistantError, KeyError) as ex:
+        except (
+            HomeAssistantError,
+            FGLairGeneralException,
+            KeyError,
+            TypeError,
+            ValueError,
+        ) as ex:
+            # Timeout or cloud/login error: one line instead of a traceback - it is
+            # retried with the next poll.
             _LOGGER.warning(
-                "Failed to refresh display temperature for device %s: %s",
+                "Failed to request a refresh for device %s: %s",
                 self._name,
-                ex,
+                type(ex).__name__,
             )
 
         self._target_temperature = await self.async_target_temperature()
@@ -595,6 +684,29 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         self._hvac_modes = SUPPORTED_MODES
         self._preset_modes = [PRESET_NONE, PRESET_ECO, PRESET_BOOST, PRESET_AWAY]
         self._on = self.is_on
+
+        # Feed the diagnostic sensors (sensor.py, binary_sensor.py)
+        extras = {
+            "last_poll": self._last_poll,
+            "last_contact": self._last_contact,
+            "indoor": self._current_temperature,
+            "outdoor": _outdoor_degree(self._fujitsu_device),
+        }
+        store = self._hass.data.setdefault(DOMAIN, {})
+        store.setdefault("properties", {})[self._dsn] = (
+            self._name,
+            self._properties,
+            extras,
+        )
+        store.setdefault("status", {})[self._dsn] = extras
+        async_dispatcher_send(
+            self._hass,
+            SIGNAL_PROPERTIES,
+            self._dsn,
+            self._name,
+            self._properties,
+            extras,
+        )
 
         _LOGGER.debug(
             "FujitsuClimate finish async_update for device [%s]",
@@ -1084,6 +1196,24 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         )
 
     # ===> old stuff
+
+    @property
+    def available(self) -> bool:
+        """Available if the last poll is fresh and the unit has reported to the cloud.
+
+        Previously this depended on fetching the device list: with cloud/login problems
+        all units were unavailable, while a unit that really went silent never was.
+        """
+        return device_is_available(self._last_poll, self._last_contact)
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Device shared with the diagnostic sensors."""
+        try:
+            name = self.name
+        except KeyError, TypeError:
+            name = None
+        return _device_info(self._dsn, name)
 
     @property
     def unique_id(self) -> str:

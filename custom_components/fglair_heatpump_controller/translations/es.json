@@ -1,0 +1,159 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Conectar con FGLair",
+        "description": "Conectar con tu cuenta de FGLair.",
+        "data": {
+          "username": "Correo electrónico",
+          "password": "Contraseña",
+          "region": "Región",
+          "tokenpath": "Ruta del token",
+          "temperature_offset": "Corrección de temperatura"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]"
+    },
+    "abort": {
+      "already_configured": "FGLair ya está configurado para este correo. Se ha renovado el token de acceso."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "last_contact": {
+        "name": "Último contacto"
+      },
+      "last_change": {
+        "name": "Último cambio"
+      },
+      "last_poll": {
+        "name": "Última consulta"
+      },
+      "indoor_temperature": {
+        "name": "Temperatura interior"
+      },
+      "outdoor_temperature": {
+        "name": "Temperatura exterior"
+      },
+      "outdoor_temperature_raw": {
+        "name": "Temperatura exterior (bruto)"
+      },
+      "error_code": {
+        "name": "Código de error"
+      },
+      "op_status": {
+        "name": "Estado de funcionamiento"
+      },
+      "wifi_led_enable": {
+        "name": "LED de wifi"
+      },
+      "model_name": {
+        "name": "Modelo"
+      },
+      "mcu_fw_version": {
+        "name": "Firmware del controlador"
+      },
+      "oem_host_version": {
+        "name": "Firmware del módulo wifi"
+      },
+      "device_name": {
+        "name": "Nombre del dispositivo"
+      },
+      "device_capabilities": {
+        "name": "Funciones del dispositivo"
+      },
+      "af_vertical_num_dir": {
+        "name": "Posiciones de flujo vertical"
+      },
+      "af_horizontal_num_dir": {
+        "name": "Posiciones de flujo horizontal"
+      },
+      "outdoor_low_noise": {
+        "name": "Unidad exterior silenciosa"
+      },
+      "human_det": {
+        "name": "Detección de personas"
+      },
+      "coil_dry_mode": {
+        "name": "Secado del intercambiador"
+      },
+      "external_thermostat_off": {
+        "name": "Termostato externo apagado"
+      },
+      "heat_sterilizatio": {
+        "name": "Esterilización por calor"
+      },
+      "comm_version": {
+        "name": "Versión de comunicación"
+      },
+      "ac_info1": {
+        "name": "Info del aire 1"
+      },
+      "monitor1": {
+        "name": "Monitor 1"
+      },
+      "monitor2": {
+        "name": "Monitor 2"
+      },
+      "ota_status": {
+        "name": "Estado OTA"
+      },
+      "energy_heat": {
+        "name": "Energía calefacción"
+      },
+      "energy_cool": {
+        "name": "Energía refrigeración"
+      },
+      "energy_dry": {
+        "name": "Energía deshumidificación"
+      },
+      "energy_fan": {
+        "name": "Energía ventilador"
+      },
+      "energy_standby": {
+        "name": "Energía en espera"
+      },
+      "energy_total": {
+        "name": "Energía total"
+      }
+    },
+    "binary_sensor": {
+      "cloud_connection": {
+        "name": "Conexión a la nube"
+      }
+    },
+    "climate": {
+      "fglair": {
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "auto": "Automático",
+              "low": "Bajo",
+              "medium": "Medio",
+              "high": "Alto",
+              "diffuse": "Silencioso"
+            }
+          }
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Medidores previos",
+        "description": "Opcionalmente, un medidor de energía (kWh) o sensor de potencia (W) delante de cada unidad, p. ej. un enchufe inteligente. Proporciona contadores de energía por modo y la unidad indica si calienta/enfría o está inactiva.",
+        "data": {
+          "action_threshold": "Umbral compresor en marcha"
+        },
+        "data_description": {
+          "action_threshold": "Por encima de esta potencia el compresor funciona (calentar/enfriar), por debajo la unidad está inactiva."
+        }
+      }
+    }
+  }
+}
