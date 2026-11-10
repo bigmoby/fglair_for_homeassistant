@@ -41,12 +41,11 @@ from homeassistant.exceptions import (
     ServiceValidationError,
 )
 from homeassistant.helpers import entity_registry as er
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.util import Throttle
-from homeassistant.util.dt import utcnow
+from homeassistant.util.dt import parse_datetime, utcnow
 import probatio
 from pyfujitsugeneral.client import FGLairApiClient
 from pyfujitsugeneral.exceptions import FGLairGeneralException
@@ -65,6 +64,7 @@ from .const import (
     MIN_TEMP,
     MIN_TIME_BETWEEN_UPDATES,
     REFRESH_MINUTES_INTERVAL,
+    STALE_AFTER,
     VERTICAL,
 )
 
@@ -129,6 +129,31 @@ DICT_FAN_MODE = {
     "High": FAN_HIGH,
     "Quiet": FAN_DIFFUSE,
 }
+
+
+def _newest_report(properties: Any) -> datetime | None:
+    """Return the newest data_updated_at of all properties (last report of the unit)."""
+    newest = None
+    for item in properties if isinstance(properties, list) else []:
+        prop = item.get("property") if isinstance(item, dict) else None
+        stamp = (
+            parse_datetime(str(prop.get("data_updated_at")))
+            if isinstance(prop, dict) and prop.get("data_updated_at")
+            else None
+        )
+        if stamp is not None and (newest is None or stamp > newest):
+            newest = stamp
+    return newest
+
+
+def device_is_available(
+    last_poll: datetime | None, last_contact: datetime | None
+) -> bool:
+    """Fresh poll AND the unit reported at most STALE_AFTER before that poll."""
+    if last_poll is None or utcnow() - last_poll > STALE_AFTER:
+        return False
+    return last_contact is None or last_poll - last_contact <= STALE_AFTER
+
 
 FUJITSU_TO_HA_STATE = {
     "off": HVACMode.OFF,
@@ -239,23 +264,13 @@ async def async_setup_entry(
 
     coordinator: FglairDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
 
-    username: str = entry.data[CONF_USERNAME]
-    password: str = entry.data[CONF_PASSWORD]
     region: str = entry.data[CONF_REGION]
     tokenpath: str = entry.data[CONF_TOKENPATH]
     temperature_offset: float = entry.data[CONF_TEMPERATURE_OFFSET]
 
-    fglair_api_client: FGLairApiClient = FGLairApiClient(
-        username, password, region, tokenpath, async_get_clientsession(hass)
-    )
-
-    auth_result = await fglair_api_client.async_authenticate()
-
-    if not auth_result:
-        _LOGGER.error("Unable to authenticate with Fujistsu General")
-        return
-
-    devices = await fglair_api_client.async_get_devices_dsn()
+    # Shared client, already logged in during setup (see __init__.py) - no second login.
+    fglair_api_client: FGLairApiClient = coordinator.client
+    devices = coordinator.devices
 
     await _async_migrate_legacy_unique_ids(hass, entry, fglair_api_client, devices)
 
@@ -317,6 +332,8 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         self._attr_supported_features = SUPPORT_FLAGS
 
         self._properties: Any = None
+        self._last_poll: datetime | None = None
+        self._last_contact: datetime | None = None
         self._name = ""
         self._unique_id: str = ""
         self._aux_heat: bool = False
@@ -552,6 +569,10 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
 
         self._name = self.name  # ensure name is current
 
+        # Availability: last successful poll and last report of the unit to the cloud
+        self._last_poll = utcnow()
+        self._last_contact = _newest_report(self._properties)
+
         _LOGGER.debug(
             "FujitsuClimate device [%s] detected supported presets: %s",
             self._name,
@@ -571,11 +592,19 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             await self._async_refresh_display_temperature_request(
                 self._fujitsu_device.get_refresh()["data_updated_at"]
             )
-        except (HomeAssistantError, KeyError) as ex:
+        except (
+            HomeAssistantError,
+            FGLairGeneralException,
+            KeyError,
+            TypeError,
+            ValueError,
+        ) as ex:
+            # Timeout or cloud/login error: one line instead of a traceback - it is
+            # retried with the next poll.
             _LOGGER.warning(
-                "Failed to refresh display temperature for device %s: %s",
+                "Failed to request a refresh for device %s: %s",
                 self._name,
-                ex,
+                type(ex).__name__,
             )
 
         self._target_temperature = await self.async_target_temperature()
@@ -1084,6 +1113,15 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         )
 
     # ===> old stuff
+
+    @property
+    def available(self) -> bool:
+        """Available if the last poll is fresh and the unit has reported to the cloud.
+
+        Previously this depended on fetching the device list: with cloud/login problems
+        all units were unavailable, while a unit that really went silent never was.
+        """
+        return device_is_available(self._last_poll, self._last_contact)
 
     @property
     def unique_id(self) -> str:

@@ -23,6 +23,9 @@ BINARY_SENSOR_DEVICE_CLASS = "connectivity"
 # Platforms
 PLATFORMS = [Platform.CLIMATE]
 
+# No successful poll / no report of the unit for this long -> unavailable
+STALE_AFTER = timedelta(minutes=10)
+
 # Configuration and options
 CONF_TOKENPATH = "tokenpath"
 CONF_TEMPERATURE_OFFSET = "temperature_offset"
