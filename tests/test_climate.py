@@ -236,7 +236,7 @@ def test_climate_temperature_unit() -> None:
         coordinator=mock_coordinator,
     )
 
-    assert climate.temperature_unit == "°C"
+    assert climate.native_temperature_unit == "°C"
 
 
 def test_climate_min_temp() -> None:
@@ -1220,7 +1220,7 @@ def test_climate_temperature_properties() -> None:
     )
 
     # Test temperature unit
-    assert climate.temperature_unit == "°C"
+    assert climate.native_temperature_unit == "°C"
 
     # Test temperature range
     assert isinstance(climate.min_temp, int | float)
@@ -1678,7 +1678,7 @@ def test_is_aux_heat_on_property_no_value() -> None:
 
 
 def test_current_temperature_property() -> None:
-    """Test current_temperature property."""
+    """Test native_current_temperature property."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1695,12 +1695,12 @@ def test_current_temperature_property() -> None:
     # Set the internal temperature
     climate._current_temperature = 22.5
 
-    temperature = climate.current_temperature
+    temperature = climate.native_current_temperature
     assert temperature == 22.5
 
 
 def test_current_temperature_property_none() -> None:
-    """Test current_temperature property when None."""
+    """Test native_current_temperature property when None."""
     mock_client = MagicMock()
     mock_coordinator = MagicMock()
 
@@ -1717,7 +1717,7 @@ def test_current_temperature_property_none() -> None:
     # Set the internal temperature to None
     climate._current_temperature = None
 
-    temperature = climate.current_temperature
+    temperature = climate.native_current_temperature
     assert temperature is None
 
 
@@ -2761,7 +2761,7 @@ def test_climate_current_temperature() -> None:
         coordinator=mock_coordinator,
     )
 
-    assert hasattr(climate, "current_temperature")
+    assert hasattr(climate, "native_current_temperature")
 
 
 def test_climate_target_temperature() -> None:
@@ -2779,7 +2779,7 @@ def test_climate_target_temperature() -> None:
         coordinator=mock_coordinator,
     )
 
-    assert hasattr(climate, "target_temperature")
+    assert hasattr(climate, "native_target_temperature")
 
 
 def test_climate_current_humidity() -> None:
@@ -3120,7 +3120,7 @@ def test_climate_basic_properties() -> None:
         assert hasattr(climate, "unique_id")
         assert hasattr(climate, "name")
         assert hasattr(climate, "should_poll")
-        assert hasattr(climate, "temperature_unit")
+        assert hasattr(climate, "native_temperature_unit")
         assert hasattr(climate, "min_temp")
         assert hasattr(climate, "max_temp")
         assert hasattr(climate, "target_temperature_step")
@@ -3889,3 +3889,10 @@ def test_supported_features_horizontal_swing_exception() -> None:
 
     features = climate.supported_features
     assert ClimateEntityFeature.SWING_HORIZONTAL_MODE not in features
+
+
+def test_climate_uses_native_temperature_properties() -> None:
+    """The entity provides the native_* temperature properties, not the names deprecated in HA 2026.11."""
+    for name in ("current_temperature", "target_temperature", "temperature_unit"):
+        assert name not in FujitsuClimate.__dict__
+        assert f"native_{name}" in FujitsuClimate.__dict__

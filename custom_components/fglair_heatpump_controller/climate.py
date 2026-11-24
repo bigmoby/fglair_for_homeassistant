@@ -378,7 +378,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         return bool(self._fujitsu_device.get_powerful_mode()["value"])
 
     @property
-    def current_temperature(self) -> float | None:
+    def native_current_temperature(self) -> float | None:
         """Return the current temperature in degrees Celsius."""
         return self._current_temperature
 
@@ -421,7 +421,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
             return data
 
     @property
-    def target_temperature(self) -> float | None:
+    def native_target_temperature(self) -> float | None:
         """Getter for the temperature we try to reach."""
         return self._target_temperature
 
@@ -1106,7 +1106,7 @@ class FujitsuClimate(CoordinatorEntity[FglairDataUpdateCoordinator], ClimateEnti
         return MAX_TEMP
 
     @property
-    def temperature_unit(self) -> Any:
+    def native_temperature_unit(self) -> str:
         """Return the unit of measurement."""
         return UnitOfTemperature.CELSIUS
 
